@@ -225,10 +225,17 @@ def infer_column(s: pd.Series, name: str):
     # First check: if column contains any letters (A-Z), it's definitely STRING
     non_null_values = s.dropna().astype(str)
     if len(non_null_values) > 0:
-        has_letters = non_null_values.str.contains(r'[A-Za-z]', na=False).any()
+        # More comprehensive letter detection
+        has_letters = non_null_values.str.contains(r'[A-Za-z]', na=False, regex=True).any()
         if has_letters:
             ser = s.astype(str).str.strip()
             return ser, "STRING", None, {"valid_ratio": 1.0, "invalid_count": 0, "note": "string (contains letters)"}
+        
+        # Additional check: if any value contains letters, even if most are numeric
+        for value in non_null_values:
+            if any(c.isalpha() for c in str(value)):
+                ser = s.astype(str).str.strip()
+                return ser, "STRING", None, {"valid_ratio": 1.0, "invalid_count": 0, "note": "string (contains letters)"}
 
     # boolean
     if detect_boolean(s):
