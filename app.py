@@ -8,18 +8,17 @@ import io
 import sys
 import os
 
-# Import the validation functions from main.py
+# Import the processing functions from main.py
 from main import (
-    process_xlsx, process_csv, RunLogger, 
-    validate_headers, strip_cell, infer_column,
+    process_xlsx, process_csv, 
     bq_schema_from_df, format_dates_for_csv,
     write_clean_csv, find_unbalanced_quote_lines
 )
 
 # Page configuration
 st.set_page_config(
-    page_title="BigQuery Data Validator",
-    page_icon="🔍",
+    page_title="BigQuery Data Processor",
+    page_icon="🔧",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -65,7 +64,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-def create_download_zip(results, temp_dir):
+def create_download_zip(temp_dir):
     """Create a zip file with all output files"""
     zip_buffer = io.BytesIO()
     
@@ -78,94 +77,80 @@ def create_download_zip(results, temp_dir):
     zip_buffer.seek(0)
     return zip_buffer.getvalue()
 
-def display_validation_results(results, temp_dir):
-    """Display validation results in a user-friendly format"""
+def display_processing_results(temp_dir):
+    """Display processing results in a user-friendly format"""
     
-    if not results:
-        st.error("No results to display")
+    output_dir = Path(temp_dir)
+    if not output_dir.exists():
+        st.error("No output directory found")
         return
     
-    # Overall summary
-    total_errors = sum(r.get("errors", 0) for r in results)
-    total_warnings = sum(r.get("warnings", 0) for r in results)
-    total_sheets = len(results)
-    clean_sheets = sum(1 for r in results if r.get("is_clean", False))
+    # Get all output files
+    csv_files = list(output_dir.glob("*.csv"))
+    schema_files = list(output_dir.glob("*_bq_schema.json"))
+    summary_files = list(output_dir.glob("*_summary.txt"))
     
     # Display metrics
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.metric("Total Sheets", total_sheets)
+        st.metric("Processed Sheets", len(csv_files))
     
     with col2:
-        st.metric("Clean Sheets", clean_sheets, delta=f"{clean_sheets/total_sheets*100:.1f}%" if total_sheets > 0 else "0%")
+        st.metric("Schema Files", len(schema_files))
     
     with col3:
-        st.metric("Warnings", total_warnings, delta="⚠️" if total_warnings > 0 else "✅")
-    
-    with col4:
-        st.metric("Errors", total_errors, delta="❌" if total_errors > 0 else "✅")
+        st.metric("Summary Files", len(summary_files))
     
     # Status message
-    if total_errors == 0 and total_warnings == 0:
-        st.success("🎉 All validations passed! Your data is BigQuery-ready.")
-    elif total_errors == 0:
-        st.warning(f"⚠️ Validation completed with {total_warnings} warnings. Check details below.")
+    if csv_files:
+        st.success("🎉 Processing completed! Your data is BigQuery-ready.")
     else:
-        st.error(f"❌ Validation completed with {total_errors} errors and {total_warnings} warnings.")
+        st.warning("⚠️ No CSV files were generated.")
     
-    # Detailed results for each sheet
-    st.subheader("📊 Detailed Results")
+    # Display results for each processed sheet
+    st.subheader("📊 Processed Files")
     
-    for i, result in enumerate(results):
-        with st.expander(f"Sheet: {result.get('sheet', f'Sheet {i+1}')}", expanded=total_sheets == 1):
-            
-            # Sheet metrics
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Rows", result.get('rows', 0))
-            with col2:
-                st.metric("Columns", result.get('cols', 0))
-            with col3:
-                status = "✅ Clean" if result.get('is_clean', False) else "⚠️ Issues"
-                st.metric("Status", status)
-            
-            # Display validation report if available
-            validation_path = result.get('validation_path')
-            if validation_path and Path(validation_path).exists():
-                with open(validation_path, 'r', encoding='utf-8') as f:
-                    validation_content = f.read()
-                
-                st.subheader("📋 Validation Report")
-                st.text(validation_content)
+    for csv_file in csv_files:
+        sheet_name = csv_file.stem
+        schema_file = output_dir / f"{sheet_name}_bq_schema.json"
+        summary_file = output_dir / f"{sheet_name}_summary.txt"
+        
+        with st.expander(f"Sheet: {sheet_name}", expanded=len(csv_files) == 1):
             
             # Display schema if available
-            schema_path = result.get('schema_path')
-            if schema_path and Path(schema_path).exists():
-                with open(schema_path, 'r', encoding='utf-8') as f:
+            if schema_file.exists():
+                with open(schema_file, 'r', encoding='utf-8') as f:
                     schema = json.load(f)
                 
                 st.subheader("🗂️ BigQuery Schema")
                 st.json(schema)
             
             # Display summary if available
-            summary_path = result.get('summary_path')
-            if summary_path and Path(summary_path).exists():
-                with open(summary_path, 'r', encoding='utf-8') as f:
+            if summary_file.exists():
+                with open(summary_file, 'r', encoding='utf-8') as f:
                     summary_content = f.read()
                 
                 st.subheader("📝 Column Summary")
                 st.text(summary_content)
+            
+            # Show CSV preview
+            try:
+                df = pd.read_csv(csv_file, nrows=5)  # Show first 5 rows
+                st.subheader("📊 Data Preview (First 5 rows)")
+                st.dataframe(df)
+            except Exception as e:
+                st.warning(f"Could not preview CSV: {str(e)}")
 
 def main():
     # Header
-    st.markdown('<div class="main-header">🔍 BigQuery Data Validator</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">🔧 BigQuery Data Processor</div>', unsafe_allow_html=True)
     
     st.markdown("""
-    This tool validates your Excel or CSV files against BigQuery requirements and provides:
+    This tool processes your Excel or CSV files for BigQuery compatibility and provides:
     - **Smart data type inference** (STRING, INT64, FLOAT64, BOOL, DATE, TIMESTAMP)
     - **Automatic column name sanitization** (BigQuery-compatible naming)
-    - **Comprehensive data quality assessment** (validation warnings and errors)
+    - **Data cleaning and normalization** (handles missing values, formats dates)
     - **BigQuery schema generation** (ready for import)
     - **Clean CSV output** (properly formatted for BigQuery)
     
@@ -210,57 +195,52 @@ def main():
                     output_dir = temp_dir / "output"
                     output_dir.mkdir()
                     
-                    # Create logger
-                    logger = RunLogger(output_dir)
-                    
                     # Process file based on extension
                     file_ext = input_path.suffix.lower()
                     
                     try:
                         if file_ext in {'.xlsx', '.xlsm', '.xls'}:
-                            results = process_xlsx(input_path, output_dir, logger)
+                            process_xlsx(input_path, output_dir)
                         elif file_ext == '.csv':
-                            results = process_csv(input_path, output_dir, logger)
+                            process_csv(input_path, output_dir)
                         else:
                             st.error("Unsupported file type. Please upload .xlsx, .xls, or .csv files.")
                             return
                         
                         # Display results
                         st.success("✅ Processing completed!")
-                        display_validation_results(results, output_dir)
+                        display_processing_results(output_dir)
                         
                         # Create download package
-                        if results:
-                            zip_data = create_download_zip(results, output_dir)
-                            
-                            st.subheader("📦 Download Results")
-                            st.download_button(
-                                label="📥 Download All Results (ZIP)",
-                                data=zip_data,
-                                file_name=f"bigquery_validation_{uploaded_file.name.split('.')[0]}.zip",
-                                mime="application/zip",
-                                help="Download all processed files including CSV, schema, and validation reports"
-                            )
-                            
-                            # Individual file downloads
-                            st.subheader("📄 Individual Files")
-                            
-                            for i, result in enumerate(results):
-                                sheet_name = result.get('sheet', f'Sheet_{i+1}')
+                        zip_data = create_download_zip(output_dir)
+                        
+                        st.subheader("📦 Download Results")
+                        st.download_button(
+                            label="📥 Download All Results (ZIP)",
+                            data=zip_data,
+                            file_name=f"bigquery_processed_{uploaded_file.name.split('.')[0]}.zip",
+                            mime="application/zip",
+                            help="Download all processed files including CSV, schema, and summary files"
+                        )
+                        
+                        # Individual file downloads
+                        st.subheader("📄 Individual Files")
+                        
+                        # List all files in output directory
+                        output_files = list(Path(output_dir).glob("*"))
+                        for file_path in output_files:
+                            if file_path.is_file():
+                                with open(file_path, 'rb') as f:
+                                    file_data = f.read()
                                 
-                                # CSV download
-                                csv_path = result.get('csv_path')
-                                if csv_path and Path(csv_path).exists():
-                                    with open(csv_path, 'rb') as f:
-                                        csv_data = f.read()
-                                    
-                                    st.download_button(
-                                        label=f"📊 Download {sheet_name} CSV",
-                                        data=csv_data,
-                                        file_name=f"{sheet_name}.csv",
-                                        mime="text/csv",
-                                        key=f"csv_{i}"
-                                    )
+                                file_type = "📊 CSV" if file_path.suffix == '.csv' else "📋 JSON" if file_path.suffix == '.json' else "📝 TXT"
+                                st.download_button(
+                                    label=f"{file_type} Download {file_path.name}",
+                                    data=file_data,
+                                    file_name=file_path.name,
+                                    mime="text/csv" if file_path.suffix == '.csv' else "application/json" if file_path.suffix == '.json' else "text/plain",
+                                    key=f"file_{file_path.name}"
+                                )
                     
                     except Exception as e:
                         st.error(f"❌ Processing failed: {str(e)}")
@@ -270,8 +250,8 @@ def main():
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; color: #666;'>
-        <p>🔍 BigQuery Data Validator | Built with Streamlit</p>
-        <p>Validates Excel/CSV files for BigQuery compatibility</p>
+        <p>🔧 BigQuery Data Processor | Built with Streamlit</p>
+        <p>Processes Excel/CSV files for BigQuery compatibility</p>
     </div>
     """, unsafe_allow_html=True)
 
