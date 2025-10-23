@@ -169,6 +169,8 @@ def main():
     - **BigQuery schema generation** (ready for import)
     - **Clean CSV output** (properly formatted for BigQuery)
     
+    **Smart Logic**: Columns containing any letters (A-Z) are automatically detected as STRING type.
+    
     Simply upload your file and click "Process File" - no configuration needed!
     """)
     

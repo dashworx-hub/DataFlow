@@ -16,8 +16,8 @@ OUTPUT_DIR = "clean_output"
 
 # general settings
 DAYFIRST_HINT = True            # True if dates are usually DD/MM/YYYY
-THRESH_NUMERIC = 0.88           # share of parsable rows to accept numeric
-THRESH_DATE = 0.65              # share of parsable rows to accept date
+THRESH_NUMERIC = 0.95           # share of parsable rows to accept numeric (increased for safety)
+THRESH_DATE = 0.80              # share of parsable rows to accept date (increased for safety)
 MAX_ROWS_SAMPLE = 20000         # speed cap per column for inference
 DECIMAL_CHAR = "."              # set "," if decimals use comma
 CURRENCY_CHARS = "£$€¥₹"
@@ -152,7 +152,20 @@ def normalize_numeric_text(s: pd.Series) -> pd.Series:
 def try_numeric(s: pd.Series) -> Tuple[pd.Series, float]:
     x = normalize_numeric_text(s)
     num = pd.to_numeric(x, errors="coerce")
-    return num, num.notna().mean()
+    ratio = num.notna().mean()
+    
+    # Additional safety check: if there are any non-numeric strings that couldn't be normalized,
+    # be more conservative about numeric detection
+    if ratio > 0:
+        non_numeric_count = len(x) - num.notna().sum()
+        total_count = len(x)
+        if non_numeric_count > 0:
+            # If there are any clearly non-numeric values, reduce confidence
+            non_numeric_ratio = non_numeric_count / total_count
+            if non_numeric_ratio > 0.05:  # More than 5% non-numeric values
+                ratio = ratio * 0.8  # Reduce confidence by 20%
+    
+    return num, ratio
 
 def try_parse_date_patterns(s: pd.Series):
     x = s.astype(str)
@@ -209,6 +222,14 @@ def infer_column(s: pd.Series, name: str):
     """
     s = s.apply(strip_cell)
 
+    # First check: if column contains any letters (A-Z), it's definitely STRING
+    non_null_values = s.dropna().astype(str)
+    if len(non_null_values) > 0:
+        has_letters = non_null_values.str.contains(r'[A-Za-z]', na=False).any()
+        if has_letters:
+            ser = s.astype(str).str.strip()
+            return ser, "STRING", None, {"valid_ratio": 1.0, "invalid_count": 0, "note": "string (contains letters)"}
+
     # boolean
     if detect_boolean(s):
         ser = coerce_boolean(s)
@@ -264,9 +285,18 @@ def infer_column(s: pd.Series, name: str):
         vr = full_dt.notna().mean()
         return full_dt, bq_type, date_fmt, {"valid_ratio": float(vr), "invalid_count": int(len(full_dt) - full_dt.notna().sum()), "note": "date/timestamp"}
 
-    # numeric
+    # numeric - with additional safety checks
     num, num_ratio = try_numeric(s)
     if num_ratio >= THRESH_NUMERIC:
+        # Additional safety: check if there are any clearly non-numeric strings
+        original_strings = s.dropna().astype(str)
+        non_numeric_strings = original_strings[~original_strings.str.match(r'^[\d\.,\-\+\(\)\s£$€¥₹%]+$', na=False)]
+        
+        # If more than 2% of values are clearly non-numeric strings, default to STRING
+        if len(non_numeric_strings) > 0 and len(non_numeric_strings) / len(original_strings) > 0.02:
+            ser = s.astype(str).str.strip()
+            return ser, "STRING", None, {"valid_ratio": 1.0, "invalid_count": 0, "note": "string (mixed content detected)"}
+        
         nonnull = num.dropna()
         if len(nonnull) > 0 and np.all(np.modf(nonnull.values)[0] == 0):
             ser = num.astype("Int64")
@@ -310,8 +340,16 @@ def format_dates_for_csv(df: pd.DataFrame, date_fmt_map: dict) -> pd.DataFrame:
     return out
 
 def write_clean_csv(df: pd.DataFrame, path: Path):
+    # Ensure all data is properly formatted for BigQuery
+    df_clean = df.copy()
+    
+    # Convert any remaining NaN values to empty strings for STRING columns
+    for col in df_clean.columns:
+        if df_clean[col].dtype == 'object':  # STRING columns
+            df_clean[col] = df_clean[col].fillna('')
+    
     # Quote every field, escape quotes by doubling
-    df.to_csv(
+    df_clean.to_csv(
         path,
         index=False,
         quoting=csv.QUOTE_ALL,
