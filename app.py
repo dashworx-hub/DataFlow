@@ -220,22 +220,31 @@ st.markdown("""
     }
     
     /* Button styling - Hub style */
-    .stButton > button {
-        background: #274156;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 500;
-        font-size: 0.9375rem;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        width: 100%;
+    .stButton > button,
+    .stDownloadButton > button {
+        background: #274156 !important;
+        background-color: #274156 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 500 !important;
+        font-size: 0.9375rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        width: 100% !important;
     }
     
-    .stButton > button:hover {
-        background: #335169;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .stButton > button:hover,
+    .stButton > button:focus,
+    .stButton > button:active,
+    .stDownloadButton > button:hover,
+    .stDownloadButton > button:focus,
+    .stDownloadButton > button:active {
+        background: #335169 !important;
+        background-color: #335169 !important;
+        color: white !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
     }
     
     /* Metric cards - Hub style */

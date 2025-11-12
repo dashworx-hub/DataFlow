@@ -177,6 +177,7 @@ st.markdown("""
     
     /* Button styling - Hub style */
     .stButton > button,
+    .stDownloadButton > button,
     button[data-testid="baseButton-primary"],
     button[data-testid="baseButton-secondary"] {
         background: #274156 !important;
@@ -195,6 +196,9 @@ st.markdown("""
     .stButton > button:hover,
     .stButton > button:focus,
     .stButton > button:active,
+    .stDownloadButton > button:hover,
+    .stDownloadButton > button:focus,
+    .stDownloadButton > button:active,
     button[data-testid="baseButton-primary"]:hover,
     button[data-testid="baseButton-primary"]:focus,
     button[data-testid="baseButton-primary"]:active,
