@@ -128,11 +128,31 @@ st.markdown("""
         text-align: center !important;
     }
     
-    /* Ensure middle column centers content */
-    div[data-testid="column"]:nth-of-type(2) {
+    /* Ensure middle column centers content - More aggressive */
+    div[data-testid="column"]:nth-of-type(2),
+    div[data-testid="column"]:nth-of-type(2) > div,
+    .stColumn:nth-of-type(2),
+    .stColumn:nth-of-type(2) > div {
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+    }
+    
+    /* Force center any image in the middle column */
+    div[data-testid="column"]:nth-of-type(2) [data-testid="stImage"],
+    div[data-testid="column"]:nth-of-type(2) [data-testid="stImage"] > div,
+    div[data-testid="column"]:nth-of-type(2) [data-testid="stImage"] img,
+    .stColumn:nth-of-type(2) [data-testid="stImage"],
+    .stColumn:nth-of-type(2) [data-testid="stImage"] > div,
+    .stColumn:nth-of-type(2) [data-testid="stImage"] img {
+        margin: 0 auto !important;
+        display: block !important;
+        text-align: center !important;
+        max-width: 280px !important;
+        width: 280px !important;
     }
     
     .main-header {
@@ -294,9 +314,50 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def main():
-    # Add JavaScript to remove image enlarge buttons - Only for logo
+    # Add JavaScript to center logo and remove image enlarge buttons
     st.markdown("""
     <script>
+    function centerLogo() {
+        // Find the middle column (2nd column)
+        const middleColumn = document.querySelector('div[data-testid="column"]:nth-of-type(2)');
+        if (middleColumn) {
+            // Force center alignment
+            middleColumn.style.display = 'flex';
+            middleColumn.style.justifyContent = 'center';
+            middleColumn.style.alignItems = 'center';
+            middleColumn.style.textAlign = 'center';
+            middleColumn.style.width = '100%';
+            middleColumn.style.margin = '0 auto';
+            
+            // Find image in middle column and center it
+            const logoImage = middleColumn.querySelector('[data-testid="stImage"]');
+            if (logoImage) {
+                logoImage.style.margin = '0 auto';
+                logoImage.style.display = 'block';
+                logoImage.style.textAlign = 'center';
+                
+                // Also center any nested divs or images
+                const nestedDivs = logoImage.querySelectorAll('div, img');
+                nestedDivs.forEach(function(el) {
+                    el.style.margin = '0 auto';
+                    el.style.display = 'block';
+                    el.style.textAlign = 'center';
+                });
+            }
+        }
+    }
+    
+    // Run immediately and on delays
+    centerLogo();
+    setTimeout(centerLogo, 50);
+    setTimeout(centerLogo, 100);
+    setTimeout(centerLogo, 200);
+    setTimeout(centerLogo, 500);
+    
+    // Watch for DOM changes
+    const centerObserver = new MutationObserver(centerLogo);
+    centerObserver.observe(document.body, { childList: true, subtree: true });
+    
     function removeLogoButtons() {
         // Only target logo images - check if image is in the middle column (logo position)
         const middleColumn = document.querySelector('div[data-testid="column"]:nth-of-type(2)');
