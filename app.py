@@ -1031,6 +1031,19 @@ def run_main_app():
         label_visibility="collapsed"
     )
     
+    # Clear session state if file uploader is cleared (user clicked X button)
+    if uploaded_file is None:
+        # Check if we had a file before (session state exists)
+        if 'uploaded_file_name' in st.session_state:
+            # User cleared the file, so clear all session state
+            keys_to_clear = [
+                'uploaded_file_name', 'schema_review_done', 'inferred_schema',
+                'raw_dataframe', 'processed', 'output_files', 'user_selected_types'
+            ]
+            for key in keys_to_clear:
+                if key in st.session_state:
+                    del st.session_state[key]
+    
     if uploaded_file is not None:
         file_size_mb = len(uploaded_file.getvalue()) / (1024 * 1024)
         
@@ -1043,6 +1056,22 @@ def run_main_app():
             """, unsafe_allow_html=True)
             return
         
+        # Check if this is a new file (different from previous upload)
+        is_new_file = (
+            'uploaded_file_name' not in st.session_state or 
+            st.session_state.get('uploaded_file_name') != uploaded_file.name
+        )
+        
+        # Clear all previous session state when a new file is uploaded
+        if is_new_file:
+            st.session_state['schema_review_done'] = False
+            st.session_state['inferred_schema'] = None
+            st.session_state['raw_dataframe'] = None
+            st.session_state['processed'] = False
+            st.session_state['output_files'] = {}
+            st.session_state['user_selected_types'] = {}
+            st.session_state['uploaded_file_name'] = uploaded_file.name
+        
         st.markdown(f"""
         <div class="file-info">
             <strong>📄 File:</strong> {uploaded_file.name}<br>
@@ -1050,12 +1079,6 @@ def run_main_app():
             <strong>✅ Status:</strong> Ready to process
         </div>
         """, unsafe_allow_html=True)
-        
-        # Initialize session state for schema review
-        if 'schema_review_done' not in st.session_state or st.session_state.get('uploaded_file_name') != uploaded_file.name:
-            st.session_state['schema_review_done'] = False
-            st.session_state['inferred_schema'] = None
-            st.session_state['raw_dataframe'] = None
         
         # Perform initial inference if not done yet
         if not st.session_state.get('schema_review_done', False) or st.session_state.get('uploaded_file_name') != uploaded_file.name:
@@ -1103,11 +1126,19 @@ def run_main_app():
             schema_info = st.session_state['inferred_schema']
             type_options = ["STRING", "INT64", "FLOAT64", "BOOL", "DATE", "TIMESTAMP"]
             
-            # Initialize user-selected types if not exists
-            if 'user_selected_types' not in st.session_state:
+            # Initialize user-selected types if not exists or if schema changed
+            if 'user_selected_types' not in st.session_state or not st.session_state.get('user_selected_types'):
                 st.session_state['user_selected_types'] = {
                     col: info['type'] for col, info in schema_info.items()
                 }
+            else:
+                # Update user_selected_types to match current schema (add new columns, remove old ones)
+                current_types = st.session_state['user_selected_types']
+                new_types = {}
+                for col, info in schema_info.items():
+                    # Use existing selection if column exists, otherwise use inferred type
+                    new_types[col] = current_types.get(col, info['type'])
+                st.session_state['user_selected_types'] = new_types
             
             # Create schema review table
             review_data = []
@@ -1240,7 +1271,8 @@ def run_main_app():
                         st.exception(e)
                         st.session_state['processed'] = False
                         
-        if st.session_state.get('processed', False):
+        # Only show processed results if we have a file and it's been processed
+        if uploaded_file is not None and st.session_state.get('processed', False) and st.session_state.get('uploaded_file_name') == uploaded_file.name:
             with tempfile.TemporaryDirectory() as display_temp_dir:
                 display_temp_dir = Path(display_temp_dir)
                 output_dir = display_temp_dir / "output"
