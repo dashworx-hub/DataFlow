@@ -10,9 +10,20 @@ import os
 
 # Import the processing functions from main.py
 from main import (
-    process_xlsx, process_csv, 
+    process_xlsx, process_csv, process_sheet,
     bq_schema_from_df, format_dates_for_csv,
-    write_clean_csv, find_unbalanced_quote_lines
+    write_clean_csv, find_unbalanced_quote_lines,
+    infer_column, simple_header, strip_cell
+)
+
+# ============================================================================
+# PAGE CONFIGURATION (Must be first Streamlit command)
+# ============================================================================
+st.set_page_config(
+    page_title="BigQuery Data Processor",
+    page_icon="assets/web/icons8-hub-pulsar-gradient-32.png",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 # ============================================================================
@@ -727,14 +738,6 @@ def render_maintenance_page():
     Render the maintenance page using shared layout elements.
     This function blocks further execution after rendering.
     """
-    # Page configuration
-    st.set_page_config(
-        page_title="Maintenance - BigQuery Data Processor",
-        page_icon="assets/web/icons8-hub-pulsar-gradient-32.png",
-        layout="wide",
-        initial_sidebar_state="collapsed"
-    )
-    
     # Render shared layout elements
     render_shared_layout()
     
@@ -819,6 +822,59 @@ def create_summary_zip(temp_dir):
     zip_buffer.seek(0)
     return zip_buffer.getvalue()
 
+def create_schema_text_zip(temp_dir):
+    """Create a zip file with only schema TXT files"""
+    zip_buffer = io.BytesIO()
+    output_dir = Path(temp_dir)
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        schema_text_files = list(output_dir.glob("*_bq_schema.txt"))
+        for schema_text_file in schema_text_files:
+            zip_file.write(schema_text_file, schema_text_file.name)
+    
+    zip_buffer.seek(0)
+    return zip_buffer.getvalue()
+
+def perform_initial_inference(df_raw: pd.DataFrame):
+    """
+    Perform initial type inference on the raw dataframe.
+    Returns a dictionary with column info: {col_name: {'type': bq_type, 'sample_values': [...]}}
+    """
+    # Clean headers
+    df_raw.columns = [simple_header(c) for c in df_raw.columns]
+    
+    # Clean cells
+    df_raw = df_raw.applymap(strip_cell)
+    
+    schema_info = {}
+    
+    for col in df_raw.columns:
+        # Perform inference
+        ser, bq_type, date_fmt = infer_column(df_raw[col], col)
+        
+        # Get sample values (first 3 non-null values)
+        sample_values = ser.dropna().head(3).tolist()
+        # Format sample values for display
+        sample_display = []
+        for val in sample_values:
+            if isinstance(val, (int, float)):
+                sample_display.append(str(val))
+            elif isinstance(val, pd.Timestamp):
+                sample_display.append(val.strftime("%Y-%m-%d %H:%M:%S"))
+            else:
+                str_val = str(val)
+                # Truncate long strings
+                if len(str_val) > 30:
+                    str_val = str_val[:27] + "..."
+                sample_display.append(str_val)
+        
+        schema_info[col] = {
+            'type': bq_type,
+            'sample_values': sample_display[:3]  # Max 3 samples
+        }
+    
+    return schema_info
+
 def display_processing_results(temp_dir):
     """Display processing results in a user-friendly format"""
     
@@ -833,11 +889,12 @@ def display_processing_results(temp_dir):
         return
     
     csv_files = list(output_dir.glob("*.csv"))
-    schema_files = list(output_dir.glob("*_bq_schema.json"))
+    schema_json_files = list(output_dir.glob("*_bq_schema.json"))
+    schema_text_files = list(output_dir.glob("*_bq_schema.txt"))
     summary_files = list(output_dir.glob("*_summary.txt"))
     
     st.markdown('<h2>Processing Summary</h2>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.markdown("""
@@ -851,11 +908,19 @@ def display_processing_results(temp_dir):
         st.markdown("""
         <div class="metric-container">
             <div style="font-size: 2.5rem; font-weight: 700; color: #177091;">{}</div>
-            <div style="color: #666; margin-top: 0.5rem;">Schema Files</div>
+            <div style="color: #666; margin-top: 0.5rem;">Schema (JSON)</div>
         </div>
-        """.format(len(schema_files)), unsafe_allow_html=True)
+        """.format(len(schema_json_files)), unsafe_allow_html=True)
     
     with col3:
+        st.markdown("""
+        <div class="metric-container">
+            <div style="font-size: 2.5rem; font-weight: 700; color: #177091;">{}</div>
+            <div style="color: #666; margin-top: 0.5rem;">Schema (Text)</div>
+        </div>
+        """.format(len(schema_text_files)), unsafe_allow_html=True)
+    
+    with col4:
         st.markdown("""
         <div class="metric-container">
             <div style="font-size: 2.5rem; font-weight: 700; color: #177091;">{}</div>
@@ -875,17 +940,29 @@ def display_processing_results(temp_dir):
     
     for csv_file in csv_files:
         sheet_name = csv_file.stem
-        schema_file = output_dir / f"{sheet_name}_bq_schema.json"
+        schema_json_file = output_dir / f"{sheet_name}_bq_schema.json"
+        schema_text_file = output_dir / f"{sheet_name}_bq_schema.txt"
         summary_file = output_dir / f"{sheet_name}_summary.txt"
         
         with st.expander(f"📋 Sheet: {sheet_name}", expanded=len(csv_files) == 1):
             
-            if schema_file.exists():
-                with open(schema_file, 'r', encoding='utf-8') as f:
+            if schema_json_file.exists():
+                with open(schema_json_file, 'r', encoding='utf-8') as f:
                     schema = json.load(f)
                 
-                st.markdown('<h3>🗂️ BigQuery Schema</h3>', unsafe_allow_html=True)
+                st.markdown('<h3>🗂️ BigQuery Schema (JSON)</h3>', unsafe_allow_html=True)
                 st.json(schema)
+            
+            if schema_text_file.exists():
+                with open(schema_text_file, 'r', encoding='utf-8') as f:
+                    schema_text_content = f.read()
+                
+                st.markdown('<h3>📄 BigQuery Schema (Text Format)</h3>', unsafe_allow_html=True)
+                st.markdown(f"""
+                <div style="background: #ffffff; border: 1px solid #e9ecef; padding: 1rem; border-radius: 8px; font-family: monospace; white-space: pre-wrap; color: #2c3e50;">
+                {schema_text_content}
+                </div>
+                """, unsafe_allow_html=True)
             
             if summary_file.exists():
                 with open(summary_file, 'r', encoding='utf-8') as f:
@@ -915,14 +992,6 @@ def run_main_app():
     Main application functionality.
     This function contains all the actual app logic.
     """
-    # Page configuration
-    st.set_page_config(
-        page_title="BigQuery Data Processor",
-        page_icon="assets/web/icons8-hub-pulsar-gradient-32.png",
-        layout="wide",
-        initial_sidebar_state="collapsed"
-    )
-    
     # Render shared layout elements
     render_shared_layout()
     
@@ -982,40 +1051,184 @@ def run_main_app():
         </div>
         """, unsafe_allow_html=True)
         
-        process_btn = st.button("Process File", type="primary", use_container_width=True)
+        # Initialize session state for schema review
+        if 'schema_review_done' not in st.session_state or st.session_state.get('uploaded_file_name') != uploaded_file.name:
+            st.session_state['schema_review_done'] = False
+            st.session_state['inferred_schema'] = None
+            st.session_state['raw_dataframe'] = None
         
-        if process_btn:
-            with st.spinner("Processing your file..."):
-                with tempfile.TemporaryDirectory() as temp_dir:
-                    temp_dir = Path(temp_dir)
+        # Perform initial inference if not done yet
+        if not st.session_state.get('schema_review_done', False) or st.session_state.get('uploaded_file_name') != uploaded_file.name:
+            with st.spinner("Analyzing your file and inferring data types..."):
+                try:
+                    # Load the file into a dataframe
+                    file_ext = uploaded_file.name.split('.')[-1].lower()
                     
-                    input_path = temp_dir / uploaded_file.name
-                    with open(input_path, 'wb') as f:
-                        f.write(uploaded_file.getvalue())
+                    if file_ext in {'xlsx', 'xlsm', 'xls'}:
+                        # For Excel, we'll process the first sheet for schema review
+                        df_raw = pd.read_excel(uploaded_file, sheet_name=0, dtype=str, keep_default_na=False, engine="openpyxl")
+                    elif file_ext == 'csv':
+                        df_raw = pd.read_csv(uploaded_file, dtype=str, keep_default_na=False, engine="python", on_bad_lines="skip")
+                    else:
+                        st.error("Unsupported file type. Please upload .xlsx, .xls, or .csv files.")
+                        return
                     
-                    output_dir = temp_dir / "output"
-                    output_dir.mkdir()
+                    # Perform initial inference
+                    schema_info = perform_initial_inference(df_raw.copy())
                     
-                    file_ext = input_path.suffix.lower()
+                    st.session_state['inferred_schema'] = schema_info
+                    st.session_state['raw_dataframe'] = df_raw
+                    st.session_state['uploaded_file_name'] = uploaded_file.name
                     
+                except Exception as e:
+                    st.markdown(f"""
+                    <div class="error-box">
+                        <strong>❌ File Analysis Failed</strong><br>
+                        {str(e)}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.exception(e)
+                    return
+        
+        # Display Schema Review Table
+        if st.session_state.get('inferred_schema') and not st.session_state.get('processed', False):
+            st.markdown("---")
+            st.markdown('<h2>📋 Schema Review</h2>', unsafe_allow_html=True)
+            st.markdown("""
+            <div class="info-text" style="margin-bottom: 1.5rem;">
+                <p>Review and edit the inferred data types below. You can change any column type before processing.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            schema_info = st.session_state['inferred_schema']
+            type_options = ["STRING", "INT64", "FLOAT64", "BOOL", "DATE", "TIMESTAMP"]
+            
+            # Initialize user-selected types if not exists
+            if 'user_selected_types' not in st.session_state:
+                st.session_state['user_selected_types'] = {
+                    col: info['type'] for col, info in schema_info.items()
+                }
+            
+            # Create schema review table
+            review_data = []
+            for col_name, col_info in schema_info.items():
+                inferred_type = col_info['type']
+                sample_vals = col_info['sample_values']
+                sample_display = ", ".join(sample_vals) if sample_vals else "(no data)"
+                if len(sample_display) > 50:
+                    sample_display = sample_display[:47] + "..."
+                
+                # Get current user selection or default to inferred
+                current_selection = st.session_state['user_selected_types'].get(col_name, inferred_type)
+                
+                review_data.append({
+                    'Column Name': col_name,
+                    'Inferred Type': inferred_type,
+                    'Selected Type': current_selection,
+                    'Sample Values': sample_display
+                })
+            
+            # Display as dataframe for better formatting
+            review_df = pd.DataFrame(review_data)
+            
+            # Create editable interface using columns
+            st.markdown("""
+            <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+            """, unsafe_allow_html=True)
+            
+            # Display table with editable dropdowns
+            for idx, row in review_df.iterrows():
+                col_name = row['Column Name']
+                inferred_type = row['Inferred Type']
+                sample_vals = row['Sample Values']
+                
+                col1, col2, col3, col4 = st.columns([2, 1.5, 1.5, 3])
+                
+                with col1:
+                    st.markdown(f"**{col_name}**")
+                
+                with col2:
+                    st.markdown(f'<span style="color: #6b7280; font-size: 0.9rem;">{inferred_type}</span>', unsafe_allow_html=True)
+                
+                with col3:
+                    current_type = st.session_state['user_selected_types'].get(col_name, inferred_type)
                     try:
-                        if file_ext in {'.xlsx', '.xlsm', '.xls'}:
-                            process_xlsx(input_path, output_dir)
-                        elif file_ext == '.csv':
-                            process_csv(input_path, output_dir)
-                        else:
-                            st.error("Unsupported file type. Please upload .xlsx, .xls, or .csv files.")
-                            return
-                        
-                        st.session_state['output_files'] = {}
-                        for file_path in output_dir.rglob('*'):
-                            if file_path.is_file():
-                                relative_path = file_path.relative_to(output_dir)
-                                with open(file_path, 'rb') as f:
-                                    st.session_state['output_files'][str(relative_path)] = f.read()
-                        
-                        st.session_state['processed'] = True
-                        st.session_state['uploaded_file_name'] = uploaded_file.name
+                        default_index = type_options.index(current_type)
+                    except ValueError:
+                        # If current type is not in options, default to inferred type
+                        default_index = type_options.index(inferred_type) if inferred_type in type_options else 0
+                    
+                    selected_type = st.selectbox(
+                        f"Type for {col_name}",
+                        type_options,
+                        index=default_index,
+                        key=f"type_select_{col_name}",
+                        label_visibility="collapsed"
+                    )
+                    st.session_state['user_selected_types'][col_name] = selected_type
+                
+                with col4:
+                    st.markdown(f'<span style="color: #6b7280; font-size: 0.85rem; font-family: monospace;">{sample_vals}</span>', unsafe_allow_html=True)
+                
+                if idx < len(review_df) - 1:
+                    st.markdown("---")
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Process with schema button
+            st.markdown("---")
+            process_with_schema_btn = st.button("Process with this schema", type="primary", use_container_width=True, key="process_with_schema")
+            
+            if process_with_schema_btn:
+                with st.spinner("Processing your file with the selected schema..."):
+                    try:
+                        with tempfile.TemporaryDirectory() as temp_dir:
+                            temp_dir = Path(temp_dir)
+                            
+                            input_path = temp_dir / uploaded_file.name
+                            # Reset file pointer
+                            uploaded_file.seek(0)
+                            with open(input_path, 'wb') as f:
+                                f.write(uploaded_file.getvalue())
+                            
+                            output_dir = temp_dir / "output"
+                            output_dir.mkdir()
+                            
+                            file_ext = input_path.suffix.lower()
+                            
+                            # Get user-selected types
+                            override_types = st.session_state.get('user_selected_types', {})
+                            
+                            # Process with override_types
+                            if file_ext in {'.xlsx', '.xlsm', '.xls'}:
+                                # For Excel, process all sheets
+                                sheets = pd.read_excel(
+                                    input_path,
+                                    sheet_name=None,
+                                    dtype=str,
+                                    keep_default_na=False,
+                                    engine="openpyxl"
+                                )
+                                for sheet_name, df_sheet in sheets.items():
+                                    process_sheet(sheet_name, df_sheet, output_dir, override_types=override_types)
+                            elif file_ext == '.csv':
+                                df = pd.read_csv(input_path, dtype=str, keep_default_na=False, engine="python", on_bad_lines="skip")
+                                process_sheet(input_path.stem, df, output_dir, override_types=override_types)
+                            else:
+                                st.error("Unsupported file type. Please upload .xlsx, .xls, or .csv files.")
+                                return
+                            
+                            # Store output files
+                            st.session_state['output_files'] = {}
+                            for file_path in output_dir.rglob('*'):
+                                if file_path.is_file():
+                                    relative_path = file_path.relative_to(output_dir)
+                                    with open(file_path, 'rb') as f:
+                                        st.session_state['output_files'][str(relative_path)] = f.read()
+                            
+                            st.session_state['processed'] = True
+                            st.session_state['schema_review_done'] = True
+                            st.rerun()
                     
                     except Exception as e:
                         st.markdown(f"""
@@ -1065,10 +1278,111 @@ def run_main_app():
                             f.write(file_content)
                     
                     csv_zip_data = create_csv_zip(zip_output_dir)
-                    schema_zip_data = create_schema_zip(zip_output_dir)
+                    schema_json_zip_data = create_schema_zip(zip_output_dir)
+                    schema_text_zip_data = create_schema_text_zip(zip_output_dir)
                     summary_zip_data = create_summary_zip(zip_output_dir)
                     all_zip_data = create_download_zip(zip_output_dir)
                 
+                # Individual file downloads section
+                st.markdown('<h3>Individual File Downloads</h3>', unsafe_allow_html=True)
+                
+                # Get all files from output directory
+                output_files_list = []
+                for file_path_str in st.session_state.get('output_files', {}).keys():
+                    output_files_list.append(Path(file_path_str))
+                
+                # Group files by type
+                files_by_type = {
+                    '.csv': [],
+                    '.txt': [],
+                    '.json': [],
+                    'other': []
+                }
+                
+                for file_path in output_files_list:
+                    ext = file_path.suffix.lower()
+                    if ext in files_by_type:
+                        files_by_type[ext].append(file_path)
+                    else:
+                        files_by_type['other'].append(file_path)
+                
+                # Sort each group
+                for file_type in files_by_type:
+                    files_by_type[file_type].sort(key=lambda x: x.name)
+                
+                # Display CSV files
+                if files_by_type['.csv']:
+                    st.markdown('<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">CSV Files</h4>', unsafe_allow_html=True)
+                    num_cols = min(4, len(files_by_type['.csv']))
+                    cols = st.columns(num_cols, gap="small")
+                    for idx, file_path in enumerate(files_by_type['.csv']):
+                        relative_path_str = str(file_path)
+                        file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
+                        if file_data:
+                            with cols[idx % len(cols)]:
+                                display_name = file_path.name
+                                if len(display_name) > 25:
+                                    display_name = display_name[:22] + "..."
+                                st.download_button(
+                                    label=display_name,
+                                    data=file_data,
+                                    file_name=file_path.name,
+                                    mime="text/csv",
+                                    key=f"csv_{file_path.name}_{idx}",
+                                    use_container_width=True
+                                )
+                
+                # Display Schema Text files
+                if files_by_type['.txt']:
+                    schema_txt_files = [f for f in files_by_type['.txt'] if '_bq_schema.txt' in f.name]
+                    if schema_txt_files:
+                        st.markdown('<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">BigQuery Schema (Text Format)</h4>', unsafe_allow_html=True)
+                        num_cols = min(4, len(schema_txt_files))
+                        cols = st.columns(num_cols, gap="small")
+                        for idx, file_path in enumerate(schema_txt_files):
+                            relative_path_str = str(file_path)
+                            file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
+                            if file_data:
+                                with cols[idx % len(cols)]:
+                                    display_name = file_path.name
+                                    if len(display_name) > 25:
+                                        display_name = display_name[:22] + "..."
+                                    st.download_button(
+                                        label=display_name,
+                                        data=file_data,
+                                        file_name=file_path.name,
+                                        mime="text/plain",
+                                        key=f"schema_txt_{file_path.name}_{idx}",
+                                        use_container_width=True
+                                    )
+                
+                # Display Schema JSON files
+                if files_by_type['.json']:
+                    schema_json_files = [f for f in files_by_type['.json'] if '_bq_schema.json' in f.name]
+                    if schema_json_files:
+                        st.markdown('<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">BigQuery Schema (JSON Format)</h4>', unsafe_allow_html=True)
+                        num_cols = min(4, len(schema_json_files))
+                        cols = st.columns(num_cols, gap="small")
+                        for idx, file_path in enumerate(schema_json_files):
+                            relative_path_str = str(file_path)
+                            file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
+                            if file_data:
+                                with cols[idx % len(cols)]:
+                                    display_name = file_path.name
+                                    if len(display_name) > 25:
+                                        display_name = display_name[:22] + "..."
+                                    st.download_button(
+                                        label=display_name,
+                                        data=file_data,
+                                        file_name=file_path.name,
+                                        mime="application/json",
+                                        key=f"schema_json_{file_path.name}_{idx}",
+                                        use_container_width=True
+                                    )
+                
+                # Bulk download buttons
+                st.markdown("---")
+                st.markdown('<h3>Bulk Downloads</h3>', unsafe_allow_html=True)
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
@@ -1083,21 +1397,21 @@ def run_main_app():
                 
                 with col2:
                     st.download_button(
-                        label="Download Schemas",
-                        data=schema_zip_data,
-                        file_name=f"{base_name}_schemas.zip",
+                        label="Download Schema (Text)",
+                        data=schema_text_zip_data,
+                        file_name=f"{base_name}_schema_text.zip",
                         mime="application/zip",
-                        help="Download all BigQuery schema JSON files",
+                        help="Download all BigQuery schema text files",
                         use_container_width=True
                     )
                 
                 with col3:
                     st.download_button(
-                        label="Download Summaries",
-                        data=summary_zip_data,
-                        file_name=f"{base_name}_summaries.zip",
+                        label="Download Schema (JSON)",
+                        data=schema_json_zip_data,
+                        file_name=f"{base_name}_schemas_json.zip",
                         mime="application/zip",
-                        help="Download all summary text files",
+                        help="Download all BigQuery schema JSON files",
                         use_container_width=True
                     )
                 
@@ -1107,67 +1421,9 @@ def run_main_app():
                         data=all_zip_data,
                         file_name=f"{base_name}_all_files.zip",
                         mime="application/zip",
-                        help="Download all processed files including CSV, schema, and summary files",
+                        help="Download all processed files including CSV and schema files",
                         use_container_width=True
                     )
-                
-                st.markdown('<h3>Individual Files</h3>', unsafe_allow_html=True)
-                
-                output_files = [f for f in output_dir.glob("*") if f.is_file()]
-                
-                files_by_type = {
-                    '.csv': [],
-                    '.xlsx': [],
-                    '.xls': [],
-                    '.json': [],
-                    '.txt': [],
-                    'other': []
-                }
-                
-                for file_path in output_files:
-                    ext = file_path.suffix.lower()
-                    if ext in files_by_type:
-                        files_by_type[ext].append(file_path)
-                    else:
-                        files_by_type['other'].append(file_path)
-                
-                for file_type in files_by_type:
-                    files_by_type[file_type].sort(key=lambda x: x.name)
-                
-                file_type_info = {
-                    '.csv': {'icon_path': 'assets/csv.png', 'name': 'CSV Files', 'mime': 'text/csv'},
-                    '.xlsx': {'icon_path': 'assets/xlsx.png', 'name': 'Excel Files', 'mime': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},
-                    '.xls': {'icon_path': 'assets/xlsx.png', 'name': 'Excel Files', 'mime': 'application/vnd.ms-excel'},
-                    '.json': {'icon_path': None, 'icon': '📋', 'name': 'JSON Files', 'mime': 'application/json'},
-                    '.txt': {'icon_path': None, 'icon': '📝', 'name': 'Text Files', 'mime': 'text/plain'},
-                    'other': {'icon_path': None, 'icon': '📄', 'name': 'Other Files', 'mime': 'application/octet-stream'}
-                }
-                
-                for file_ext, files in files_by_type.items():
-                    if files:
-                        st.markdown(f'<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">{file_type_info[file_ext]["name"]}</h4>', unsafe_allow_html=True)
-                        
-                        num_cols = min(4, len(files))
-                        cols = st.columns(num_cols, gap="small")
-                        
-                        for idx, file_path in enumerate(files):
-                            relative_path_str = str(file_path.relative_to(output_dir))
-                            file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
-                            
-                            if file_data:
-                                with cols[idx % len(cols)]:
-                                    display_name = file_path.name
-                                    if len(display_name) > 25:
-                                        display_name = display_name[:22] + "..."
-                                    
-                                    st.download_button(
-                                        label=display_name,
-                                        data=file_data,
-                                        file_name=file_path.name,
-                                        mime=file_type_info[file_ext]["mime"],
-                                        key=f"file_{file_path.name}_{idx}",
-                                        use_container_width=True
-                                    )
     
     # Footer
     render_shared_footer()

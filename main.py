@@ -219,6 +219,56 @@ def infer_column(s: pd.Series, name: str):
     # default STRING
     return s.astype(str).str.strip(), "STRING", None
 
+def coerce_column_to_type(s: pd.Series, target_type: str):
+    """
+    Coerce a column to a given BigQuery type using existing helpers.
+    Used when the user edits the schema and we want to enforce it.
+    """
+    s = s.apply(strip_cell)
+
+    t = target_type.upper()
+
+    if t == "STRING":
+        return s.astype(str).str.strip(), "STRING", None
+
+    if t == "BOOL":
+        return coerce_boolean(s), "BOOL", None
+
+    if t in {"INT64", "FLOAT64"}:
+        num, _ = try_numeric(s)
+        if t == "INT64":
+            return num.astype("Int64"), "INT64", None
+        return num.astype(float), "FLOAT64", None
+
+    if t in {"DATE", "TIMESTAMP"}:
+        ss = sample_series(s, MAX_ROWS_SAMPLE)
+        excel_dt, excel_ratio = try_parse_excel_serial(ss)
+        pat_dt, pat_ratio = try_parse_date_patterns(ss)
+        d1, r1 = try_parse_date_direction(ss, dayfirst=DAYFIRST_HINT)
+        d2, r2 = try_parse_date_direction(ss, dayfirst=not DAYFIRST_HINT)
+        candidates = [(excel_dt, excel_ratio), (pat_dt, pat_ratio), (d1, r1), (d2, r2)]
+        best_dt, _ = max(candidates, key=lambda x: x[1])
+
+        if best_dt is excel_dt:
+            num, _ = try_numeric(s)
+            nonnull = num.dropna()
+            out = pd.Series(pd.NaT, index=s.index, dtype="datetime64[ns]")
+            idx = nonnull.index
+            out.loc[idx] = [EXCEL_EPOCH + timedelta(days=int(v)) for v in nonnull.loc[idx]]
+            full_dt = out
+        elif best_dt is pat_dt:
+            full_dt, _ = try_parse_date_patterns(s)
+        elif best_dt is d1:
+            full_dt, _ = try_parse_date_direction(s, dayfirst=DAYFIRST_HINT)
+        else:
+            full_dt, _ = try_parse_date_direction(s, dayfirst=not DAYFIRST_HINT)
+
+        fmt = "%Y-%m-%d" if t == "DATE" else "%Y-%m-%d %H:%M:%S"
+        return full_dt, t, fmt
+
+    # fallback
+    return s.astype(str).str.strip(), "STRING", None
+
 def bq_schema_from_df(df: pd.DataFrame, date_fmt_map: dict) -> list:
     schema = []
     for col in df.columns:
@@ -275,7 +325,7 @@ def write_clean_csv(df: pd.DataFrame, path: Path):
         doublequote=True,
         lineterminator="\n",
         encoding="utf-8",
-        na_rep=""          # <- this renders NaN/NaT/<NA> as empty cells without changing dtypes
+        na_rep=""
     )
 
 def find_unbalanced_quote_lines(path: Path):
@@ -286,20 +336,33 @@ def find_unbalanced_quote_lines(path: Path):
                 bad.append(i)
     return bad
 
-def process_sheet(sheet_name: str, df_raw: pd.DataFrame, out_dir: Path):
+def write_bq_text_schema(bq_type_map: dict, path: Path):
+    """
+    Write BigQuery schema in text form suitable for 'Edit as text' box.
+    One field per line: name:TYPE,MODE  (MODE is usually NULLABLE)
+    """
+    with open(path, "w", encoding="utf-8") as f:
+        for col, typ in bq_type_map.items():
+            f.write(f"{col}:{typ},NULLABLE\n")
+
+def process_sheet(sheet_name: str, df_raw: pd.DataFrame, out_dir: Path, override_types: dict | None = None):
     # Header cleanup
     df_raw.columns = [simple_header(c) for c in df_raw.columns]
 
     # Cell cleanup
     df_raw = df_raw.applymap(strip_cell)
 
-    # Inference
+    # Inference or coercion
     typed = {}
     date_fmt_map = {}
     bq_type_map = {}
 
     for col in df_raw.columns:
-        ser, bq_type, date_fmt = infer_column(df_raw[col], col)
+        if override_types is not None and col in override_types:
+            ser, bq_type, date_fmt = coerce_column_to_type(df_raw[col], override_types[col])
+        else:
+            ser, bq_type, date_fmt = infer_column(df_raw[col], col)
+
         typed[col] = ser
         bq_type_map[col] = bq_type
         if date_fmt:
@@ -318,6 +381,7 @@ def process_sheet(sheet_name: str, df_raw: pd.DataFrame, out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
     csv_path = out_dir / f"{safe}.csv"
     schema_path = out_dir / f"{safe}_bq_schema.json"
+    schema_text_path = out_dir / f"{safe}_bq_schema.txt"
     summary_path = out_dir / f"{safe}_summary.txt"
 
     write_clean_csv(df_to_write, csv_path)
@@ -330,12 +394,14 @@ def process_sheet(sheet_name: str, df_raw: pd.DataFrame, out_dir: Path):
     with open(schema_path, "w", encoding="utf-8") as f:
         json.dump(schema, f, indent=2)
 
+    write_bq_text_schema(bq_type_map, schema_text_path)
+
     with open(summary_path, "w", encoding="utf-8") as f:
         f.write(f"Sheet: {sheet_name}\n")
         for col in df_clean.columns:
             f.write(f"- {col}: {bq_type_map[col]}\n")
 
-    print(f"OK: {csv_path.name}, {schema_path.name}, {summary_path.name}")
+    print(f"OK: {csv_path.name}, {schema_path.name}, {schema_text_path.name}, {summary_path.name}")
 
 def process_xlsx(xlsx_path: Path, out_dir: Path):
     sheets = pd.read_excel(
