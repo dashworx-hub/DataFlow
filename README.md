@@ -135,14 +135,4 @@ A lightweight Streamlit application that validates Excel and CSV files against B
    - Use the CSV file for BigQuery import
    - Use the schema JSON for table creation
 
-## 🤝 Contributing
-
-Feel free to submit issues, feature requests, or pull requests to improve this tool.
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
 ---
-
-**Built with ❤️ using Streamlit**
