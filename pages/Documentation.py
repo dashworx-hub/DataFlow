@@ -629,7 +629,7 @@ def main():
     st.markdown("""
     <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin-top: 1.5rem;">
         <ol start="11" style="margin: 1rem 0; padding-left: 2rem;">
-            <li style="margin-bottom: 1rem;">Make sure you always select the <strong>Quoted newlines</strong> option while uploading the data.</li>
+            <li style="margin-bottom: 1rem;">Make sure you always select the <strong>Quoted newlines</strong>, while uploading the data. This is available in the available options as shown in the image</li>
             <li style="margin-bottom: 1rem;">Once all these options are selected correctly, you can then <strong>Create table</strong>.</li>
         </ol>
     </div>
