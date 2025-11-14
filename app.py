@@ -362,6 +362,41 @@ def render_shared_css():
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         
+        /* Important notice box - translucent red/orange */
+        .important-notice {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-left: 4px solid rgba(220, 38, 38, 0.8);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+        }
+        
+        .important-notice h3 {
+            color: #991b1b;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .important-notice ul {
+            color: #7f1d1d;
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .important-notice ul li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        
+        .important-notice strong {
+            color: #991b1b;
+            font-weight: 600;
+        }
+        
         /* Section headers */
         h2 {
             color: #111827;
@@ -999,10 +1034,13 @@ def run_main_app():
     st.markdown('<h1 class="main-header">BigQuery Data Processor</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Transform your Excel and CSV files into BigQuery-ready format with intelligent data processing</p>', unsafe_allow_html=True)
     
-    # Navigation button to Documentation page
+    # Navigation buttons
     col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.button("📚 Schema Guide", use_container_width=True, key="nav_to_schema_docs"):
+            st.switch_page("pages/Schema_Documentation.py")
     with col2:
-        if st.button("View Documentation", use_container_width=True, key="nav_to_docs"):
+        if st.button("📖 BigQuery Guide", use_container_width=True, key="nav_to_docs"):
             st.switch_page("pages/Documentation.py")
     
     # Features section
@@ -1011,12 +1049,25 @@ def run_main_app():
         <h3>✨ Key Features</h3>
         <ul>
             <li><strong>Smart Data Type Inference</strong> - Automatically detects STRING, INT64, FLOAT64, BOOL, DATE, and TIMESTAMP types</li>
+            <li><strong>Schema Review & Editing</strong> - Review and edit inferred data types before processing with an intuitive interface</li>
             <li><strong>Automatic Column Sanitization</strong> - Converts column names to BigQuery-compatible format</li>
             <li><strong>Data Cleaning & Normalization</strong> - Handles missing values, formats dates, and cleans data</li>
-            <li><strong>BigQuery Schema Generation</strong> - Generates ready-to-use JSON schema files</li>
+            <li><strong>BigQuery Schema Generation</strong> - Generates ready-to-use JSON and text format schema files</li>
             <li><strong>Clean CSV Output</strong> - Produces properly formatted CSV files optimized for BigQuery</li>
         </ul>
-        <p style="margin-top: 1.25rem; margin-bottom: 0; padding-top: 1.25rem; border-top: 1px solid #e5e7eb;"><strong>💡 Smart Logic:</strong> Columns containing any letters (A-Z) are automatically detected as STRING type. Simply upload your file and click "Process File" - no configuration needed!</p>
+        <p style="margin-top: 1.25rem; margin-bottom: 0; padding-top: 1.25rem; border-top: 1px solid #e5e7eb;"><strong>💡 Smart Logic:</strong> Columns containing any letters (A-Z) are automatically detected as STRING type. After uploading your file, review the inferred schema, make any adjustments needed, then click "Process with this schema" to generate your BigQuery-ready files!</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Important notice section
+    st.markdown("""
+    <div class="important-notice">
+        <h3>⚠️ Important Information</h3>
+        <ul>
+            <li><strong>Single User Access:</strong> Only one user can access the app at a time</li>
+            <li><strong>One File at a Time:</strong> One file can be uploaded at a time. Multiple files cannot be uploaded</li>
+            <li><strong>Schema Review:</strong> Choose the data schema correctly before processing the file</li>
+        </ul>
     </div>
     """, unsafe_allow_html=True)
     

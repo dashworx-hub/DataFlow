@@ -490,11 +490,14 @@ def main():
     </script>
     """, unsafe_allow_html=True)
     
-    # Back to main page button
+    # Navigation buttons
     col1, col2, col3 = st.columns([1, 1, 1])
-    with col2:
+    with col1:
         if st.button("← Back to Main Page", use_container_width=True, key="back_to_main"):
             st.switch_page("app.py")
+    with col3:
+        if st.button("📚 Schema Guide →", use_container_width=True, key="nav_to_schema_docs"):
+            st.switch_page("pages/Schema_Documentation.py")
     
     # Documentation content
     st.markdown("""
