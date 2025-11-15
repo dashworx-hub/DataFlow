@@ -405,6 +405,7 @@ def render_shared_css():
             margin-bottom: 1.25rem;
             font-size: 1.5rem;
             letter-spacing: -0.01em;
+            scroll-margin-top: 2rem;
         }
         
         h3 {
@@ -414,6 +415,245 @@ def render_shared_css():
             margin-bottom: 1rem;
             font-size: 1.25rem;
             letter-spacing: -0.01em;
+            scroll-margin-top: 2rem;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Better spacing for sections */
+        .stMarkdown > div {
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Improved schema review table styling */
+        .schema-review-row {
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            padding: 0.5rem 0;
+        }
+        
+        .schema-review-row:hover {
+            background-color: #f9fafb;
+            transform: translateX(4px);
+        }
+        
+        /* Better selectbox styling */
+        [data-baseweb="select"] {
+            border-radius: 8px !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        [data-baseweb="select"]:hover {
+            border-color: #274156 !important;
+            box-shadow: 0 0 0 3px rgba(39, 65, 86, 0.1) !important;
+        }
+        
+        [data-baseweb="select"]:focus-within {
+            border-color: #274156 !important;
+            box-shadow: 0 0 0 3px rgba(39, 65, 86, 0.15) !important;
+        }
+        
+        /* Improved file info card */
+        .file-info {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .file-info:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Better expander styling */
+        [data-testid="stExpander"] {
+            border: 1px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            margin-bottom: 1rem !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        [data-testid="stExpander"]:hover {
+            border-color: #274156 !important;
+            box-shadow: 0 2px 8px rgba(39, 65, 86, 0.1) !important;
+        }
+        
+        /* Improved spacing for columns in schema review */
+        div[data-testid="column"] {
+            padding: 0.5rem !important;
+        }
+        
+        /* Better visual hierarchy for schema review */
+        .schema-column-name {
+            font-weight: 600;
+            color: #111827;
+            font-size: 0.95rem;
+        }
+        
+        .schema-inferred-type {
+            color: #6b7280;
+            font-size: 0.9rem;
+            padding: 0.25rem 0.5rem;
+            background: #f3f4f6;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        
+        .schema-sample-values {
+            color: #6b7280;
+            font-size: 0.85rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: #f9fafb;
+            padding: 0.5rem;
+            border-radius: 6px;
+            line-height: 1.5;
+        }
+        
+        /* Loading spinner improvements */
+        .stSpinner > div {
+            border-color: #274156 !important;
+        }
+        
+        /* Better button focus states */
+        .stButton > button:focus,
+        .stDownloadButton > button:focus {
+            outline: 3px solid rgba(39, 65, 86, 0.3) !important;
+            outline-offset: 2px !important;
+        }
+        
+        /* Protect navigation buttons from being hidden */
+        button[data-testid*="nav_to_schema"],
+        button[data-testid*="nav_to_docs"] {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            position: relative !important;
+        }
+        
+        /* Ensure navigation buttons are always visible on hover */
+        button:hover[data-testid*="nav_to_schema"],
+        button:hover[data-testid*="nav_to_docs"] {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Additional protection for navigation button containers */
+        .stButton:has(button[data-testid*="nav_to_schema"]),
+        .stButton:has(button[data-testid*="nav_to_docs"]) {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Improved metric containers */
+        .metric-container {
+            transition: all 0.2s ease;
+        }
+        
+        .metric-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+        }
+        
+        /* Better success/warning/error boxes */
+        .success-box, .warning-box, .error-box {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Improved info cards */
+        .info-card {
+            transition: all 0.2s ease;
+        }
+        
+        .info-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+        }
+        
+        /* Better divider styling */
+        hr {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 2rem 0;
+        }
+        
+        /* Improved spacing for file uploader */
+        [data-testid="stFileUploader"] {
+            margin: 1.5rem 0 !important;
+        }
+        
+        /* Better table/card spacing */
+        .schema-review-container {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .schema-review-container:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        /* Mobile responsiveness improvements */
+        @media (max-width: 768px) {
+            .main .block-container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            h2 {
+                font-size: 1.25rem;
+                margin-top: 1.5rem;
+            }
+            
+            .schema-review-container {
+                padding: 1rem;
+            }
+        }
+        
+        /* Focus visible for accessibility */
+        *:focus-visible {
+            outline: 2px solid #274156;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+        
+        /* Better scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
         
         /* Info text styling */
@@ -780,9 +1020,17 @@ def render_shared_logo_script():
                                      btn.closest('[data-testid="stImage"]');
                 
                 if (isImageButton) {
-                    btn.style.display = 'none';
-                    btn.style.visibility = 'hidden';
-                    btn.style.opacity = '0';
+                    // Don't hide navigation buttons
+                    const btnText = (btn.textContent || '').trim();
+                    const btnKey = btn.getAttribute('data-testid') || '';
+                    if (btnText !== 'Schema Guide' && 
+                        btnText !== 'BigQuery Guide' && 
+                        btnKey !== 'nav_to_schema_docs' && 
+                        btnKey !== 'nav_to_docs') {
+                        btn.style.display = 'none';
+                        btn.style.visibility = 'hidden';
+                        btn.style.opacity = '0';
+                    }
                     btn.style.pointerEvents = 'none';
                     btn.style.width = '0';
                     btn.style.height = '0';
@@ -800,9 +1048,17 @@ def render_shared_logo_script():
             logoImages.forEach(function(imgContainer) {
                 const buttons = imgContainer.querySelectorAll('button');
                 buttons.forEach(function(btn) {
-                    btn.style.display = 'none';
-                    btn.style.visibility = 'hidden';
-                    btn.style.opacity = '0';
+                    // Don't hide navigation buttons
+                    const btnText = (btn.textContent || '').trim();
+                    const btnKey = btn.getAttribute('data-testid') || '';
+                    if (btnText !== 'Schema Guide' && 
+                        btnText !== 'BigQuery Guide' && 
+                        btnKey !== 'nav_to_schema_docs' && 
+                        btnKey !== 'nav_to_docs') {
+                        btn.style.display = 'none';
+                        btn.style.visibility = 'hidden';
+                        btn.style.opacity = '0';
+                    }
                     btn.style.pointerEvents = 'none';
                     btn.style.width = '0';
                     btn.style.height = '0';
@@ -918,6 +1174,193 @@ def render_shared_logo_script():
         styleFileUploaderClearButton();
     });
     fileUploaderObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    
+    // Smooth scroll to sections
+    function smoothScrollToElement(element) {
+        if (element) {
+            const headerOffset = 80;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    }
+    
+    // Add smooth scroll to all anchor links
+    document.addEventListener('click', function(e) {
+        if (e.target.tagName === 'A' && e.target.getAttribute('href') && e.target.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const targetId = e.target.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            smoothScrollToElement(targetElement);
+        }
+    });
+    
+    // Highlight selected schema row on interaction
+    function addSchemaRowInteractions() {
+        const schemaRows = document.querySelectorAll('.schema-review-row');
+        schemaRows.forEach(function(row) {
+            // Only add listeners if not already added
+            if (!row.dataset.interactive) {
+                row.dataset.interactive = 'true';
+                row.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#f9fafb';
+                    this.style.transform = 'translateX(4px)';
+                });
+                row.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '';
+                    this.style.transform = '';
+                });
+            }
+        });
+    }
+    
+    // Run on page load and when DOM changes
+    addSchemaRowInteractions();
+    setTimeout(addSchemaRowInteractions, 100);
+    setTimeout(addSchemaRowInteractions, 500);
+    
+    const schemaObserver = new MutationObserver(function(mutations) {
+        addSchemaRowInteractions();
+    });
+    schemaObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    
+    // Prevent any interference with navigation buttons
+    function protectNavigationButtons() {
+        // Find buttons by their data-testid keys
+        const navButtons = document.querySelectorAll('button[data-testid*="nav_to_schema"], button[data-testid*="nav_to_docs"]');
+        navButtons.forEach(function(button) {
+            // Force button to always be visible and clickable
+            button.style.setProperty('display', 'flex', 'important');
+            button.style.setProperty('visibility', 'visible', 'important');
+            button.style.setProperty('opacity', '1', 'important');
+            button.style.setProperty('pointer-events', 'auto', 'important');
+            button.style.setProperty('position', 'relative', 'important');
+            
+            // Also protect the parent container
+            const parent = button.closest('.stButton');
+            if (parent) {
+                parent.style.setProperty('display', 'block', 'important');
+                parent.style.setProperty('visibility', 'visible', 'important');
+                parent.style.setProperty('opacity', '1', 'important');
+            }
+            
+            // Prevent any hover effects that might hide it
+            button.onmouseenter = function() {
+                this.style.setProperty('display', 'flex', 'important');
+                this.style.setProperty('visibility', 'visible', 'important');
+                this.style.setProperty('opacity', '1', 'important');
+            };
+            button.onmouseleave = function() {
+                this.style.setProperty('display', 'flex', 'important');
+                this.style.setProperty('visibility', 'visible', 'important');
+                this.style.setProperty('opacity', '1', 'important');
+            };
+            
+            // Mark as protected
+            if (!button.dataset.protected) {
+                button.dataset.protected = 'true';
+            }
+        });
+        
+        // Also check by text content as fallback
+        const allButtons = document.querySelectorAll('.stButton > button');
+        allButtons.forEach(function(button) {
+            const buttonText = (button.textContent || '').trim();
+            if (buttonText === 'Schema Guide' || buttonText === 'BigQuery Guide') {
+                button.style.setProperty('display', 'flex', 'important');
+                button.style.setProperty('visibility', 'visible', 'important');
+                button.style.setProperty('opacity', '1', 'important');
+                button.style.setProperty('pointer-events', 'auto', 'important');
+                
+                const parent = button.closest('.stButton');
+                if (parent) {
+                    parent.style.setProperty('display', 'block', 'important');
+                    parent.style.setProperty('visibility', 'visible', 'important');
+                    parent.style.setProperty('opacity', '1', 'important');
+                }
+            }
+        });
+    }
+    
+    protectNavigationButtons();
+    setTimeout(protectNavigationButtons, 50);
+    setTimeout(protectNavigationButtons, 100);
+    setTimeout(protectNavigationButtons, 200);
+    setTimeout(protectNavigationButtons, 500);
+    
+    const buttonProtectionObserver = new MutationObserver(function(mutations) {
+        protectNavigationButtons();
+    });
+    buttonProtectionObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+    });
+    
+    // Add visual feedback for button clicks (but skip navigation buttons)
+    document.addEventListener('click', function(e) {
+        const button = e.target.closest('button');
+        if (button) {
+            // Skip navigation buttons to avoid interfering with page switching
+            const buttonText = (button.textContent || '').trim();
+            const buttonKey = button.getAttribute('data-testid') || '';
+            if (buttonText.includes('Schema Guide') || 
+                buttonText.includes('BigQuery Guide') || 
+                buttonText.includes('Back to Main') ||
+                buttonText.includes('View BigQuery Guide') ||
+                buttonKey.includes('nav_')) {
+                return; // Don't add animation to navigation buttons
+            }
+            
+            if (e.target.closest('.stButton > button') || e.target.closest('.stDownloadButton > button')) {
+                button.style.transform = 'scale(0.98)';
+                setTimeout(function() {
+                    button.style.transform = '';
+                }, 150);
+            }
+        }
+    });
+    
+    // Improve focus management for better accessibility
+    document.addEventListener('keydown', function(e) {
+        // Tab navigation improvements
+        if (e.key === 'Tab') {
+            document.body.classList.add('keyboard-navigation');
+        }
+    });
+    
+    document.addEventListener('mousedown', function() {
+        document.body.classList.remove('keyboard-navigation');
+    });
+    
+    // Add loading state animations
+    function addLoadingAnimations() {
+        const spinners = document.querySelectorAll('[data-testid="stSpinner"]');
+        spinners.forEach(function(spinner) {
+            spinner.style.opacity = '0';
+            setTimeout(function() {
+                spinner.style.transition = 'opacity 0.3s ease';
+                spinner.style.opacity = '1';
+            }, 50);
+        });
+    }
+    
+    addLoadingAnimations();
+    const loadingObserver = new MutationObserver(function(mutations) {
+        addLoadingAnimations();
+    });
+    loadingObserver.observe(document.body, {
         childList: true,
         subtree: true
     });
@@ -1279,10 +1722,16 @@ def run_main_app():
     col1, col2, col3, col4 = st.columns([1, 2, 2, 1])
     with col2:
         if st.button("Schema Guide", use_container_width=True, key="nav_to_schema_docs"):
-            st.switch_page("pages/Schema_Documentation.py")
+            try:
+                st.switch_page("pages/Schema_Documentation.py")
+            except Exception as e:
+                st.error(f"Navigation error: {str(e)}")
     with col3:
         if st.button("BigQuery Guide", use_container_width=True, key="nav_to_docs"):
-            st.switch_page("pages/Documentation.py")
+            try:
+                st.switch_page("pages/Documentation.py")
+            except Exception as e:
+                st.error(f"Navigation error: {str(e)}")
     
     # Features section
     st.markdown("""
@@ -1530,9 +1979,9 @@ def run_main_app():
                 if len(sheet_names) > 1:
                     st.markdown(f'<h3 style="margin-top: 0; margin-bottom: 1rem;">Sheet: <strong>{selected_sheet}</strong></h3>', unsafe_allow_html=True)
                 
-                # Create editable interface using columns
+                # Create editable interface using columns with improved styling
                 st.markdown("""
-                <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="schema-review-container">
                 """, unsafe_allow_html=True)
                 
                 # Display table with editable dropdowns
@@ -1541,13 +1990,16 @@ def run_main_app():
                     inferred_type = row['Inferred Type']
                     sample_vals = row['Sample Values']
                     
+                    # Add row styling
+                    st.markdown(f'<div class="schema-review-row">', unsafe_allow_html=True)
+                    
                     col1, col2, col3, col4 = st.columns([2, 1.5, 1.5, 3])
                     
                     with col1:
-                        st.markdown(f"**{col_name}**")
+                        st.markdown(f'<div class="schema-column-name">{col_name}</div>', unsafe_allow_html=True)
                     
                     with col2:
-                        st.markdown(f'<span style="color: #6b7280; font-size: 0.9rem;">{inferred_type}</span>', unsafe_allow_html=True)
+                        st.markdown(f'<span class="schema-inferred-type">{inferred_type}</span>', unsafe_allow_html=True)
                     
                     with col3:
                         sheet_types = st.session_state['user_selected_types'].get(selected_sheet, {})
@@ -1571,10 +2023,12 @@ def run_main_app():
                         st.session_state['user_selected_types'][selected_sheet][col_name] = selected_type
                     
                     with col4:
-                        st.markdown(f'<span style="color: #6b7280; font-size: 0.85rem; font-family: monospace;">{sample_vals}</span>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="schema-sample-values">{sample_vals}</div>', unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     if idx < len(review_df) - 1:
-                        st.markdown("---")
+                        st.markdown('<hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">', unsafe_allow_html=True)
                 
                 st.markdown("</div>", unsafe_allow_html=True)
             
