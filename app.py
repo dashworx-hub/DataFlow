@@ -1394,7 +1394,7 @@ def run_main_app():
             if len(sheet_names) > 1:
                 st.markdown("""
                 <div class="info-text" style="margin-bottom: 1.5rem;">
-                    <p>This file contains multiple sheets. Select a sheet below to review and edit its schema.</p>
+                    <p><span style="color: #dc2626; font-size: 1.2rem; margin-right: 0.5rem;">⚠️</span>This file contains multiple sheets. Select a sheet below to review and edit its schema.</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
