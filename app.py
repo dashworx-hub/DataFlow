@@ -626,6 +626,107 @@ def render_shared_css():
             color: #ffffff !important;
             outline: none !important;
         }
+        
+        /* Style the clear/remove button (X button) in file uploader - More aggressive targeting */
+        [data-testid="stFileUploader"] button[aria-label*="Remove"],
+        [data-testid="stFileUploader"] button[aria-label*="remove"],
+        [data-testid="stFileUploader"] button[title*="Remove"],
+        [data-testid="stFileUploader"] button[title*="remove"],
+        [data-testid="stFileUploader"] button[aria-label*="Delete"],
+        [data-testid="stFileUploader"] button[aria-label*="delete"],
+        [data-testid="stFileUploader"] button[aria-label*="Clear"],
+        [data-testid="stFileUploader"] button[aria-label*="clear"],
+        [data-testid="stFileUploader"] button svg[data-testid="CloseIcon"],
+        [data-testid="stFileUploader"] button:has(svg[data-testid="CloseIcon"]),
+        [data-testid="stFileUploader"] button:has(svg path[d*="M18 6L6 18"]),
+        [data-testid="stFileUploader"] button:has(svg path[d*="M6 6l12 12"]),
+        [data-testid="stFileUploader"] button:has(svg path[d*="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"]),
+        [data-testid="stFileUploader"] button:has(svg path[d*="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"]),
+        [data-testid="stFileUploader"] button[type="button"]:has(svg),
+        [data-testid="stFileUploader"] > div > div > button:has(svg),
+        [data-testid="stFileUploader"] > div > div > div > button:has(svg) {
+            background: #274156 !important;
+            background-color: #274156 !important;
+            border: 1px solid #274156 !important;
+            border-radius: 8px !important;
+            width: 40px !important;
+            min-width: 40px !important;
+            max-width: 40px !important;
+            height: 40px !important;
+            min-height: 40px !important;
+            max-height: 40px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #ffffff !important;
+            flex-shrink: 0 !important;
+        }
+        
+        /* Target all SVG elements inside remove buttons */
+        [data-testid="stFileUploader"] button[aria-label*="Remove"] svg,
+        [data-testid="stFileUploader"] button[aria-label*="remove"] svg,
+        [data-testid="stFileUploader"] button[title*="Remove"] svg,
+        [data-testid="stFileUploader"] button[title*="remove"] svg,
+        [data-testid="stFileUploader"] button[aria-label*="Delete"] svg,
+        [data-testid="stFileUploader"] button[aria-label*="delete"] svg,
+        [data-testid="stFileUploader"] button[aria-label*="Clear"] svg,
+        [data-testid="stFileUploader"] button[aria-label*="clear"] svg,
+        [data-testid="stFileUploader"] button svg[data-testid="CloseIcon"],
+        [data-testid="stFileUploader"] button:has(svg[data-testid="CloseIcon"]) svg,
+        [data-testid="stFileUploader"] button:has(svg path[d*="M18 6L6 18"]) svg,
+        [data-testid="stFileUploader"] button:has(svg path[d*="M6 6l12 12"]) svg,
+        [data-testid="stFileUploader"] button:has(svg path[d*="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"]) svg,
+        [data-testid="stFileUploader"] button[type="button"]:has(svg) svg,
+        [data-testid="stFileUploader"] > div > div > button:has(svg) svg,
+        [data-testid="stFileUploader"] > div > div > div > button:has(svg) svg {
+            color: #ffffff !important;
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+            width: 20px !important;
+            height: 20px !important;
+        }
+        
+        /* Target all path elements inside SVG */
+        [data-testid="stFileUploader"] button[aria-label*="Remove"] svg path,
+        [data-testid="stFileUploader"] button[aria-label*="remove"] svg path,
+        [data-testid="stFileUploader"] button[title*="Remove"] svg path,
+        [data-testid="stFileUploader"] button[title*="remove"] svg path,
+        [data-testid="stFileUploader"] button[aria-label*="Delete"] svg path,
+        [data-testid="stFileUploader"] button[aria-label*="delete"] svg path,
+        [data-testid="stFileUploader"] button[aria-label*="Clear"] svg path,
+        [data-testid="stFileUploader"] button[aria-label*="clear"] svg path,
+        [data-testid="stFileUploader"] button svg[data-testid="CloseIcon"] path,
+        [data-testid="stFileUploader"] button:has(svg[data-testid="CloseIcon"]) svg path,
+        [data-testid="stFileUploader"] button:has(svg path[d*="M18 6L6 18"]) svg path,
+        [data-testid="stFileUploader"] button:has(svg path[d*="M6 6l12 12"]) svg path,
+        [data-testid="stFileUploader"] button:has(svg path[d*="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"]) svg path,
+        [data-testid="stFileUploader"] button[type="button"]:has(svg) svg path,
+        [data-testid="stFileUploader"] > div > div > button:has(svg) svg path,
+        [data-testid="stFileUploader"] > div > div > div > button:has(svg) svg path,
+        [data-testid="stFileUploader"] button svg path {
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+            color: #ffffff !important;
+        }
+        
+        /* Hover states */
+        [data-testid="stFileUploader"] button[aria-label*="Remove"]:hover,
+        [data-testid="stFileUploader"] button[aria-label*="remove"]:hover,
+        [data-testid="stFileUploader"] button[title*="Remove"]:hover,
+        [data-testid="stFileUploader"] button[title*="remove"]:hover,
+        [data-testid="stFileUploader"] button[aria-label*="Delete"]:hover,
+        [data-testid="stFileUploader"] button[aria-label*="delete"]:hover,
+        [data-testid="stFileUploader"] button:has(svg[data-testid="CloseIcon"]):hover,
+        [data-testid="stFileUploader"] button:has(svg path[d*="M18 6L6 18"]):hover,
+        [data-testid="stFileUploader"] button:has(svg path[d*="M6 6l12 12"]):hover,
+        [data-testid="stFileUploader"] button[type="button"]:has(svg):hover,
+        [data-testid="stFileUploader"] > div > div > button:has(svg):hover {
+            background: #335169 !important;
+            background-color: #335169 !important;
+            border-color: #335169 !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -732,6 +833,93 @@ def render_shared_logo_script():
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
+    });
+    
+    function styleFileUploaderClearButton() {
+        // Find the file uploader
+        const fileUploader = document.querySelector('[data-testid="stFileUploader"]');
+        if (!fileUploader) return;
+        
+        // Find the uploaded file list container - it's usually in a specific structure
+        // Look for buttons that are positioned next to file names (the clear buttons)
+        // These buttons are typically in a row with the file name
+        const allButtons = fileUploader.querySelectorAll('button');
+        
+        allButtons.forEach(function(btn) {
+            const btnText = (btn.textContent || '').trim();
+            const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
+            const title = (btn.getAttribute('title') || '').toLowerCase();
+            
+            // Skip the "Browse files" button - it has visible text like "Browse files"
+            if (btnText && (btnText.toLowerCase().includes('browse') || btnText.toLowerCase().includes('file'))) {
+                return;
+            }
+            
+            // The clear button is typically:
+            // 1. A small button with SVG (no text)
+            // 2. Positioned to the right of file names
+            // 3. Has aria-label or title with "remove", "delete", "clear"
+            // 4. Or is a small square button with just an SVG icon
+            
+            const svg = btn.querySelector('svg');
+            const hasText = btnText && btnText.length > 0;
+            
+            // Target buttons that have SVG but no visible text (the clear button)
+            // OR buttons with remove/delete/clear in aria-label/title
+            if (svg && !hasText) {
+                // This is likely the clear button
+            } else if (ariaLabel.includes('remove') || ariaLabel.includes('delete') || ariaLabel.includes('clear') ||
+                       title.includes('remove') || title.includes('delete') || title.includes('clear')) {
+                // This is definitely the clear button
+            } else {
+                return; // Skip other buttons
+            }
+            
+            // Check if we've already replaced this button
+            if (btn.hasAttribute('data-clear-text-added')) {
+                return;
+            }
+            
+            // This is the clear button - replace SVG with "Clear" text
+            if (svg) {
+                svg.remove();
+            }
+            
+            // Add "Clear" text
+            btn.textContent = 'Clear';
+            btn.setAttribute('data-clear-text-added', 'true');
+            
+            // Style the button - make it wider to fit text
+            btn.style.cssText += 'background: #274156 !important; background-color: #274156 !important; border: 1px solid #274156 !important; border-radius: 8px !important; min-width: 60px !important; width: auto !important; height: 40px !important; min-height: 40px !important; padding: 0 12px !important; margin: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #ffffff !important; font-weight: 500 !important; font-size: 0.9375rem !important; flex-shrink: 0 !important;';
+            
+            // Add hover effect
+            if (!btn.hasAttribute('data-hover-added')) {
+                btn.setAttribute('data-hover-added', 'true');
+                btn.addEventListener('mouseenter', function() {
+                    this.style.setProperty('background', '#335169', 'important');
+                    this.style.setProperty('background-color', '#335169', 'important');
+                    this.style.setProperty('border-color', '#335169', 'important');
+                });
+                btn.addEventListener('mouseleave', function() {
+                    this.style.setProperty('background', '#274156', 'important');
+                    this.style.setProperty('background-color', '#274156', 'important');
+                    this.style.setProperty('border-color', '#274156', 'important');
+                });
+            }
+        });
+    }
+    
+    styleFileUploaderClearButton();
+    setTimeout(styleFileUploaderClearButton, 100);
+    setTimeout(styleFileUploaderClearButton, 500);
+    setTimeout(styleFileUploaderClearButton, 1000);
+    
+    const fileUploaderObserver = new MutationObserver(function(mutations) {
+        styleFileUploaderClearButton();
+    });
+    fileUploaderObserver.observe(document.body, {
+        childList: true,
+        subtree: true
     });
     </script>
     """, unsafe_allow_html=True)
@@ -1034,13 +1222,13 @@ def run_main_app():
     st.markdown('<h1 class="main-header">BigQuery Data Processor</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Transform your Excel and CSV files into BigQuery-ready format with intelligent data processing</p>', unsafe_allow_html=True)
     
-    # Navigation buttons
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col1:
-        if st.button("📚 Schema Guide", use_container_width=True, key="nav_to_schema_docs"):
-            st.switch_page("pages/Schema_Documentation.py")
+    # Navigation buttons - Centered
+    col1, col2, col3, col4 = st.columns([1, 2, 2, 1])
     with col2:
-        if st.button("📖 BigQuery Guide", use_container_width=True, key="nav_to_docs"):
+        if st.button("Schema Guide", use_container_width=True, key="nav_to_schema_docs"):
+            st.switch_page("pages/Schema_Documentation.py")
+    with col3:
+        if st.button("BigQuery Guide", use_container_width=True, key="nav_to_docs"):
             st.switch_page("pages/Documentation.py")
     
     # Features section
@@ -1088,8 +1276,9 @@ def run_main_app():
         if 'uploaded_file_name' in st.session_state:
             # User cleared the file, so clear all session state
             keys_to_clear = [
-                'uploaded_file_name', 'schema_review_done', 'inferred_schema',
-                'raw_dataframe', 'processed', 'output_files', 'user_selected_types'
+                'uploaded_file_name', 'schema_review_done', 'inferred_schemas',
+                'raw_dataframes', 'processed', 'output_files', 'user_selected_types',
+                'sheet_names', 'selected_sheet'
             ]
             for key in keys_to_clear:
                 if key in st.session_state:
@@ -1116,11 +1305,13 @@ def run_main_app():
         # Clear all previous session state when a new file is uploaded
         if is_new_file:
             st.session_state['schema_review_done'] = False
-            st.session_state['inferred_schema'] = None
-            st.session_state['raw_dataframe'] = None
+            st.session_state['inferred_schemas'] = {}
+            st.session_state['raw_dataframes'] = {}
             st.session_state['processed'] = False
             st.session_state['output_files'] = {}
             st.session_state['user_selected_types'] = {}
+            st.session_state['sheet_names'] = []
+            st.session_state['selected_sheet'] = None
             st.session_state['uploaded_file_name'] = uploaded_file.name
         
         st.markdown(f"""
@@ -1133,25 +1324,52 @@ def run_main_app():
         
         # Perform initial inference if not done yet
         if not st.session_state.get('schema_review_done', False) or st.session_state.get('uploaded_file_name') != uploaded_file.name:
-            with st.spinner("Analyzing your file and inferring data types..."):
+            with st.spinner("Analyzing your file and inferring data types for all sheets..."):
                 try:
-                    # Load the file into a dataframe
+                    # Load the file
                     file_ext = uploaded_file.name.split('.')[-1].lower()
                     
+                    inferred_schemas = {}
+                    raw_dataframes = {}
+                    sheet_names = []
+                    
                     if file_ext in {'xlsx', 'xlsm', 'xls'}:
-                        # For Excel, we'll process the first sheet for schema review
-                        df_raw = pd.read_excel(uploaded_file, sheet_name=0, dtype=str, keep_default_na=False, engine="openpyxl")
+                        # For Excel, read all sheets
+                        uploaded_file.seek(0)
+                        all_sheets = pd.read_excel(
+                            uploaded_file,
+                            sheet_name=None,
+                            dtype=str,
+                            keep_default_na=False,
+                            engine="openpyxl"
+                        )
+                        
+                        # Run inference for each sheet
+                        for sheet_name, df_raw in all_sheets.items():
+                            sheet_names.append(sheet_name)
+                            raw_dataframes[sheet_name] = df_raw
+                            schema_info = perform_initial_inference(df_raw.copy())
+                            inferred_schemas[sheet_name] = schema_info
+                        
                     elif file_ext == 'csv':
+                        # For CSV, treat as single sheet
+                        uploaded_file.seek(0)
                         df_raw = pd.read_csv(uploaded_file, dtype=str, keep_default_na=False, engine="python", on_bad_lines="skip")
+                        sheet_name = uploaded_file.name.split('.')[0]  # Use filename without extension as sheet name
+                        sheet_names = [sheet_name]
+                        raw_dataframes[sheet_name] = df_raw
+                        schema_info = perform_initial_inference(df_raw.copy())
+                        inferred_schemas[sheet_name] = schema_info
                     else:
                         st.error("Unsupported file type. Please upload .xlsx, .xls, or .csv files.")
                         return
                     
-                    # Perform initial inference
-                    schema_info = perform_initial_inference(df_raw.copy())
-                    
-                    st.session_state['inferred_schema'] = schema_info
-                    st.session_state['raw_dataframe'] = df_raw
+                    st.session_state['inferred_schemas'] = inferred_schemas
+                    st.session_state['raw_dataframes'] = raw_dataframes
+                    st.session_state['sheet_names'] = sheet_names
+                    # Set first sheet as selected by default
+                    if sheet_names:
+                        st.session_state['selected_sheet'] = sheet_names[0]
                     st.session_state['uploaded_file_name'] = uploaded_file.name
                     
                 except Exception as e:
@@ -1165,104 +1383,141 @@ def run_main_app():
                     return
         
         # Display Schema Review Table
-        if st.session_state.get('inferred_schema') and not st.session_state.get('processed', False):
+        if st.session_state.get('inferred_schemas') and not st.session_state.get('processed', False):
             st.markdown("---")
             st.markdown('<h2>📋 Schema Review</h2>', unsafe_allow_html=True)
-            st.markdown("""
-            <div class="info-text" style="margin-bottom: 1.5rem;">
-                <p>Review and edit the inferred data types below. You can change any column type before processing.</p>
-            </div>
-            """, unsafe_allow_html=True)
             
-            schema_info = st.session_state['inferred_schema']
-            type_options = ["STRING", "INT64", "FLOAT64", "BOOL", "DATE", "TIMESTAMP"]
+            sheet_names = st.session_state.get('sheet_names', [])
+            inferred_schemas = st.session_state.get('inferred_schemas', {})
             
-            # Initialize user-selected types if not exists or if schema changed
-            if 'user_selected_types' not in st.session_state or not st.session_state.get('user_selected_types'):
-                st.session_state['user_selected_types'] = {
-                    col: info['type'] for col, info in schema_info.items()
-                }
+            # Sheet selection dropdown (only show if multiple sheets)
+            if len(sheet_names) > 1:
+                st.markdown("""
+                <div class="info-text" style="margin-bottom: 1.5rem;">
+                    <p>This file contains multiple sheets. Select a sheet below to review and edit its schema.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                selected_sheet = st.selectbox(
+                    "Select Sheet to Review",
+                    sheet_names,
+                    key="sheet_selector",
+                    index=sheet_names.index(st.session_state.get('selected_sheet', sheet_names[0])) if st.session_state.get('selected_sheet') in sheet_names else 0
+                )
+                st.session_state['selected_sheet'] = selected_sheet
             else:
-                # Update user_selected_types to match current schema (add new columns, remove old ones)
-                current_types = st.session_state['user_selected_types']
-                new_types = {}
-                for col, info in schema_info.items():
-                    # Use existing selection if column exists, otherwise use inferred type
-                    new_types[col] = current_types.get(col, info['type'])
-                st.session_state['user_selected_types'] = new_types
+                # Single sheet - use the only sheet name
+                selected_sheet = sheet_names[0] if sheet_names else None
+                st.session_state['selected_sheet'] = selected_sheet
+                st.markdown("""
+                <div class="info-text" style="margin-bottom: 1.5rem;">
+                    <p>Review and edit the inferred data types below. You can change any column type before processing.</p>
+                </div>
+                """, unsafe_allow_html=True)
             
-            # Create schema review table
-            review_data = []
-            for col_name, col_info in schema_info.items():
-                inferred_type = col_info['type']
-                sample_vals = col_info['sample_values']
-                sample_display = ", ".join(sample_vals) if sample_vals else "(no data)"
-                if len(sample_display) > 50:
-                    sample_display = sample_display[:47] + "..."
+            if selected_sheet and selected_sheet in inferred_schemas:
+                schema_info = inferred_schemas[selected_sheet]
+                type_options = ["STRING", "INT64", "FLOAT64", "BOOL", "DATE", "TIMESTAMP"]
                 
-                # Get current user selection or default to inferred
-                current_selection = st.session_state['user_selected_types'].get(col_name, inferred_type)
+                # Initialize user-selected types structure if not exists
+                if 'user_selected_types' not in st.session_state:
+                    st.session_state['user_selected_types'] = {}
                 
-                review_data.append({
-                    'Column Name': col_name,
-                    'Inferred Type': inferred_type,
-                    'Selected Type': current_selection,
-                    'Sample Values': sample_display
-                })
-            
-            # Display as dataframe for better formatting
-            review_df = pd.DataFrame(review_data)
-            
-            # Create editable interface using columns
-            st.markdown("""
-            <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-            """, unsafe_allow_html=True)
-            
-            # Display table with editable dropdowns
-            for idx, row in review_df.iterrows():
-                col_name = row['Column Name']
-                inferred_type = row['Inferred Type']
-                sample_vals = row['Sample Values']
+                # Initialize user-selected types for this sheet if not exists
+                if selected_sheet not in st.session_state['user_selected_types']:
+                    st.session_state['user_selected_types'][selected_sheet] = {
+                        col: info['type'] for col, info in schema_info.items()
+                    }
+                else:
+                    # Update user_selected_types for this sheet to match current schema (add new columns, remove old ones)
+                    current_types = st.session_state['user_selected_types'][selected_sheet]
+                    new_types = {}
+                    for col, info in schema_info.items():
+                        # Use existing selection if column exists, otherwise use inferred type
+                        new_types[col] = current_types.get(col, info['type'])
+                    st.session_state['user_selected_types'][selected_sheet] = new_types
                 
-                col1, col2, col3, col4 = st.columns([2, 1.5, 1.5, 3])
-                
-                with col1:
-                    st.markdown(f"**{col_name}**")
-                
-                with col2:
-                    st.markdown(f'<span style="color: #6b7280; font-size: 0.9rem;">{inferred_type}</span>', unsafe_allow_html=True)
-                
-                with col3:
-                    current_type = st.session_state['user_selected_types'].get(col_name, inferred_type)
-                    try:
-                        default_index = type_options.index(current_type)
-                    except ValueError:
-                        # If current type is not in options, default to inferred type
-                        default_index = type_options.index(inferred_type) if inferred_type in type_options else 0
+                # Create schema review table
+                review_data = []
+                for col_name, col_info in schema_info.items():
+                    inferred_type = col_info['type']
+                    sample_vals = col_info['sample_values']
+                    sample_display = ", ".join(sample_vals) if sample_vals else "(no data)"
+                    if len(sample_display) > 50:
+                        sample_display = sample_display[:47] + "..."
                     
-                    selected_type = st.selectbox(
-                        f"Type for {col_name}",
-                        type_options,
-                        index=default_index,
-                        key=f"type_select_{col_name}",
-                        label_visibility="collapsed"
-                    )
-                    st.session_state['user_selected_types'][col_name] = selected_type
+                    # Get current user selection for this sheet and column
+                    sheet_types = st.session_state['user_selected_types'].get(selected_sheet, {})
+                    current_selection = sheet_types.get(col_name, inferred_type)
+                    
+                    review_data.append({
+                        'Column Name': col_name,
+                        'Inferred Type': inferred_type,
+                        'Selected Type': current_selection,
+                        'Sample Values': sample_display
+                    })
                 
-                with col4:
-                    st.markdown(f'<span style="color: #6b7280; font-size: 0.85rem; font-family: monospace;">{sample_vals}</span>', unsafe_allow_html=True)
+                # Display as dataframe for better formatting
+                review_df = pd.DataFrame(review_data)
                 
-                if idx < len(review_df) - 1:
-                    st.markdown("---")
-            
-            st.markdown("</div>", unsafe_allow_html=True)
+                # Show sheet name if multiple sheets
+                if len(sheet_names) > 1:
+                    st.markdown(f'<h3 style="margin-top: 0; margin-bottom: 1rem;">Sheet: <strong>{selected_sheet}</strong></h3>', unsafe_allow_html=True)
+                
+                # Create editable interface using columns
+                st.markdown("""
+                <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                """, unsafe_allow_html=True)
+                
+                # Display table with editable dropdowns
+                for idx, row in review_df.iterrows():
+                    col_name = row['Column Name']
+                    inferred_type = row['Inferred Type']
+                    sample_vals = row['Sample Values']
+                    
+                    col1, col2, col3, col4 = st.columns([2, 1.5, 1.5, 3])
+                    
+                    with col1:
+                        st.markdown(f"**{col_name}**")
+                    
+                    with col2:
+                        st.markdown(f'<span style="color: #6b7280; font-size: 0.9rem;">{inferred_type}</span>', unsafe_allow_html=True)
+                    
+                    with col3:
+                        sheet_types = st.session_state['user_selected_types'].get(selected_sheet, {})
+                        current_type = sheet_types.get(col_name, inferred_type)
+                        try:
+                            default_index = type_options.index(current_type)
+                        except ValueError:
+                            # If current type is not in options, default to inferred type
+                            default_index = type_options.index(inferred_type) if inferred_type in type_options else 0
+                        
+                        selected_type = st.selectbox(
+                            f"Type for {col_name}",
+                            type_options,
+                            index=default_index,
+                            key=f"type_select_{selected_sheet}_{col_name}",
+                            label_visibility="collapsed"
+                        )
+                        # Update the user_selected_types for this specific sheet
+                        if selected_sheet not in st.session_state['user_selected_types']:
+                            st.session_state['user_selected_types'][selected_sheet] = {}
+                        st.session_state['user_selected_types'][selected_sheet][col_name] = selected_type
+                    
+                    with col4:
+                        st.markdown(f'<span style="color: #6b7280; font-size: 0.85rem; font-family: monospace;">{sample_vals}</span>', unsafe_allow_html=True)
+                    
+                    if idx < len(review_df) - 1:
+                        st.markdown("---")
+                
+                st.markdown("</div>", unsafe_allow_html=True)
             
             # Process with schema button
             st.markdown("---")
             process_with_schema_btn = st.button("Process with this schema", type="primary", use_container_width=True, key="process_with_schema")
             
             if process_with_schema_btn:
-                with st.spinner("Processing your file with the selected schema..."):
+                with st.spinner("Processing your file with the selected schemas..."):
                     try:
                         with tempfile.TemporaryDirectory() as temp_dir:
                             temp_dir = Path(temp_dir)
@@ -1278,12 +1533,12 @@ def run_main_app():
                             
                             file_ext = input_path.suffix.lower()
                             
-                            # Get user-selected types
-                            override_types = st.session_state.get('user_selected_types', {})
+                            # Get user-selected types per sheet
+                            user_selected_types_all = st.session_state.get('user_selected_types', {})
                             
-                            # Process with override_types
+                            # Process with override_types per sheet
                             if file_ext in {'.xlsx', '.xlsm', '.xls'}:
-                                # For Excel, process all sheets
+                                # For Excel, process all sheets with their respective override_types
                                 sheets = pd.read_excel(
                                     input_path,
                                     sheet_name=None,
@@ -1292,10 +1547,15 @@ def run_main_app():
                                     engine="openpyxl"
                                 )
                                 for sheet_name, df_sheet in sheets.items():
+                                    # Get override_types for this specific sheet
+                                    override_types = user_selected_types_all.get(sheet_name, {})
                                     process_sheet(sheet_name, df_sheet, output_dir, override_types=override_types)
                             elif file_ext == '.csv':
+                                # For CSV, use the sheet name (filename without extension)
+                                sheet_name = input_path.stem
                                 df = pd.read_csv(input_path, dtype=str, keep_default_na=False, engine="python", on_bad_lines="skip")
-                                process_sheet(input_path.stem, df, output_dir, override_types=override_types)
+                                override_types = user_selected_types_all.get(sheet_name, {})
+                                process_sheet(sheet_name, df, output_dir, override_types=override_types)
                             else:
                                 st.error("Unsupported file type. Please upload .xlsx, .xls, or .csv files.")
                                 return
@@ -1366,7 +1626,7 @@ def run_main_app():
                     summary_zip_data = create_summary_zip(zip_output_dir)
                     all_zip_data = create_download_zip(zip_output_dir)
                 
-                # Individual file downloads section
+                # Individual file downloads section - Grouped by sheet
                 st.markdown('<h3>Individual File Downloads</h3>', unsafe_allow_html=True)
                 
                 # Get all files from output directory
@@ -1374,52 +1634,63 @@ def run_main_app():
                 for file_path_str in st.session_state.get('output_files', {}).keys():
                     output_files_list.append(Path(file_path_str))
                 
-                # Group files by type
-                files_by_type = {
-                    '.csv': [],
-                    '.txt': [],
-                    '.json': [],
-                    'other': []
-                }
-                
+                # Group files by sheet name
+                # Extract sheet name from filename (e.g., "Sheet1.csv" -> "Sheet1")
+                files_by_sheet = {}
                 for file_path in output_files_list:
-                    ext = file_path.suffix.lower()
-                    if ext in files_by_type:
-                        files_by_type[ext].append(file_path)
-                    else:
-                        files_by_type['other'].append(file_path)
+                    # Remove extension and any suffix like "_bq_schema" or "_summary"
+                    base_name = file_path.stem
+                    # Remove known suffixes
+                    for suffix in ['_bq_schema', '_summary']:
+                        if base_name.endswith(suffix):
+                            base_name = base_name[:-len(suffix)]
+                    
+                    if base_name not in files_by_sheet:
+                        files_by_sheet[base_name] = []
+                    files_by_sheet[base_name].append(file_path)
                 
-                # Sort each group
-                for file_type in files_by_type:
-                    files_by_type[file_type].sort(key=lambda x: x.name)
+                # Sort sheets and files within each sheet
+                for sheet_name in files_by_sheet:
+                    files_by_sheet[sheet_name].sort(key=lambda x: x.name)
                 
-                # Display CSV files
-                if files_by_type['.csv']:
-                    st.markdown('<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">CSV Files</h4>', unsafe_allow_html=True)
-                    num_cols = min(4, len(files_by_type['.csv']))
-                    cols = st.columns(num_cols, gap="small")
-                    for idx, file_path in enumerate(files_by_type['.csv']):
-                        relative_path_str = str(file_path)
-                        file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
-                        if file_data:
-                            with cols[idx % len(cols)]:
-                                display_name = file_path.name
-                                if len(display_name) > 25:
-                                    display_name = display_name[:22] + "..."
-                                st.download_button(
-                                    label=display_name,
-                                    data=file_data,
-                                    file_name=file_path.name,
-                                    mime="text/csv",
-                                    key=f"csv_{file_path.name}_{idx}",
-                                    use_container_width=True
-                                )
-                
-                # Display Schema Text files
-                if files_by_type['.txt']:
-                    schema_txt_files = [f for f in files_by_type['.txt'] if '_bq_schema.txt' in f.name]
+                # Display files grouped by sheet
+                for sheet_name in sorted(files_by_sheet.keys()):
+                    sheet_files = files_by_sheet[sheet_name]
+                    
+                    # Show sheet name header if multiple sheets
+                    sheet_names = st.session_state.get('sheet_names', [])
+                    if len(sheet_names) > 1:
+                        st.markdown(f'<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">📋 Sheet: {sheet_name}</h4>', unsafe_allow_html=True)
+                    
+                    # Group files by type for this sheet
+                    csv_files = [f for f in sheet_files if f.suffix.lower() == '.csv']
+                    schema_txt_files = [f for f in sheet_files if '_bq_schema.txt' in f.name]
+                    schema_json_files = [f for f in sheet_files if '_bq_schema.json' in f.name]
+                    summary_files = [f for f in sheet_files if '_summary.txt' in f.name]
+                    
+                    # Display CSV file
+                    if csv_files:
+                        num_cols = min(4, len(csv_files))
+                        cols = st.columns(num_cols, gap="small")
+                        for idx, file_path in enumerate(csv_files):
+                            relative_path_str = str(file_path)
+                            file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
+                            if file_data:
+                                with cols[idx % len(cols)]:
+                                    display_name = "Cleaned CSV" if len(csv_files) == 1 else file_path.name
+                                    if len(display_name) > 25:
+                                        display_name = display_name[:22] + "..."
+                                    st.download_button(
+                                        label=display_name,
+                                        data=file_data,
+                                        file_name=file_path.name,
+                                        mime="text/csv",
+                                        key=f"csv_{sheet_name}_{file_path.name}_{idx}",
+                                        use_container_width=True
+                                    )
+                    
+                    # Display Schema Text file
                     if schema_txt_files:
-                        st.markdown('<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">BigQuery Schema (Text Format)</h4>', unsafe_allow_html=True)
                         num_cols = min(4, len(schema_txt_files))
                         cols = st.columns(num_cols, gap="small")
                         for idx, file_path in enumerate(schema_txt_files):
@@ -1427,7 +1698,7 @@ def run_main_app():
                             file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
                             if file_data:
                                 with cols[idx % len(cols)]:
-                                    display_name = file_path.name
+                                    display_name = "Schema (Text)" if len(schema_txt_files) == 1 else file_path.name
                                     if len(display_name) > 25:
                                         display_name = display_name[:22] + "..."
                                     st.download_button(
@@ -1435,15 +1706,12 @@ def run_main_app():
                                         data=file_data,
                                         file_name=file_path.name,
                                         mime="text/plain",
-                                        key=f"schema_txt_{file_path.name}_{idx}",
+                                        key=f"schema_txt_{sheet_name}_{file_path.name}_{idx}",
                                         use_container_width=True
                                     )
-                
-                # Display Schema JSON files
-                if files_by_type['.json']:
-                    schema_json_files = [f for f in files_by_type['.json'] if '_bq_schema.json' in f.name]
+                    
+                    # Display Schema JSON file
                     if schema_json_files:
-                        st.markdown('<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">BigQuery Schema (JSON Format)</h4>', unsafe_allow_html=True)
                         num_cols = min(4, len(schema_json_files))
                         cols = st.columns(num_cols, gap="small")
                         for idx, file_path in enumerate(schema_json_files):
@@ -1451,7 +1719,7 @@ def run_main_app():
                             file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
                             if file_data:
                                 with cols[idx % len(cols)]:
-                                    display_name = file_path.name
+                                    display_name = "Schema (JSON)" if len(schema_json_files) == 1 else file_path.name
                                     if len(display_name) > 25:
                                         display_name = display_name[:22] + "..."
                                     st.download_button(
@@ -1459,7 +1727,28 @@ def run_main_app():
                                         data=file_data,
                                         file_name=file_path.name,
                                         mime="application/json",
-                                        key=f"schema_json_{file_path.name}_{idx}",
+                                        key=f"schema_json_{sheet_name}_{file_path.name}_{idx}",
+                                        use_container_width=True
+                                    )
+                    
+                    # Display Summary file
+                    if summary_files:
+                        num_cols = min(4, len(summary_files))
+                        cols = st.columns(num_cols, gap="small")
+                        for idx, file_path in enumerate(summary_files):
+                            relative_path_str = str(file_path)
+                            file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
+                            if file_data:
+                                with cols[idx % len(cols)]:
+                                    display_name = "Summary" if len(summary_files) == 1 else file_path.name
+                                    if len(display_name) > 25:
+                                        display_name = display_name[:22] + "..."
+                                    st.download_button(
+                                        label=display_name,
+                                        data=file_data,
+                                        file_name=file_path.name,
+                                        mime="text/plain",
+                                        key=f"summary_{sheet_name}_{file_path.name}_{idx}",
                                         use_container_width=True
                                     )
                 
