@@ -1061,7 +1061,7 @@ def create_schema_text_zip(temp_dir):
 def perform_initial_inference(df_raw: pd.DataFrame):
     """
     Perform initial type inference on the raw dataframe.
-    Returns a dictionary with column info: {col_name: {'type': bq_type, 'sample_values': [...]}}
+    Returns a dictionary with column info: {col_name: {'type': bq_type, 'sample_values': [...], 'null_count': int}}
     """
     # Clean headers
     df_raw.columns = [simple_header(c) for c in df_raw.columns]
@@ -1075,8 +1075,59 @@ def perform_initial_inference(df_raw: pd.DataFrame):
         # Perform inference
         ser, bq_type, date_fmt = infer_column(df_raw[col], col)
         
-        # Get sample values (first 3 non-null values)
-        sample_values = ser.dropna().head(3).tolist()
+        # Get non-null values for sampling
+        non_null_series = ser.dropna()
+        null_count = len(ser) - len(non_null_series)
+        
+        # Smart sampling: get 5-7 diverse sample values from different parts
+        num_samples = min(7, len(non_null_series))
+        sample_values = []
+        
+        if num_samples > 0:
+            if num_samples <= 3:
+                # If we have 3 or fewer non-null values, just take all of them
+                sample_values = non_null_series.head(num_samples).tolist()
+            else:
+                # Get diverse samples: first, middle, and last values
+                # First value
+                sample_values.append(non_null_series.iloc[0])
+                
+                # Middle values (spread out)
+                if num_samples >= 5:
+                    mid_start = len(non_null_series) // 4
+                    mid_end = 3 * len(non_null_series) // 4
+                    middle_indices = [
+                        mid_start,
+                        len(non_null_series) // 2,
+                        mid_end
+                    ]
+                    for idx in middle_indices:
+                        if len(sample_values) < num_samples:
+                            sample_values.append(non_null_series.iloc[idx])
+                
+                # Last value
+                if len(sample_values) < num_samples:
+                    sample_values.append(non_null_series.iloc[-1])
+                
+                # Fill remaining slots with evenly spaced values
+                if len(sample_values) < num_samples:
+                    remaining = num_samples - len(sample_values)
+                    step = max(1, len(non_null_series) // (remaining + 1))
+                    for i in range(1, remaining + 1):
+                        idx = i * step
+                        if idx < len(non_null_series) and len(sample_values) < num_samples:
+                            if non_null_series.iloc[idx] not in sample_values:
+                                sample_values.append(non_null_series.iloc[idx])
+                
+                # Remove duplicates while preserving order
+                seen = set()
+                unique_samples = []
+                for val in sample_values:
+                    if val not in seen:
+                        seen.add(val)
+                        unique_samples.append(val)
+                sample_values = unique_samples[:num_samples]
+        
         # Format sample values for display
         sample_display = []
         for val in sample_values:
@@ -1093,7 +1144,9 @@ def perform_initial_inference(df_raw: pd.DataFrame):
         
         schema_info[col] = {
             'type': bq_type,
-            'sample_values': sample_display[:3]  # Max 3 samples
+            'sample_values': sample_display,
+            'null_count': null_count,
+            'total_count': len(ser)
         }
     
     return schema_info
@@ -1441,10 +1494,23 @@ def run_main_app():
                 review_data = []
                 for col_name, col_info in schema_info.items():
                     inferred_type = col_info['type']
-                    sample_vals = col_info['sample_values']
-                    sample_display = ", ".join(sample_vals) if sample_vals else "(no data)"
-                    if len(sample_display) > 50:
-                        sample_display = sample_display[:47] + "..."
+                    sample_vals = col_info.get('sample_values', [])
+                    null_count = col_info.get('null_count', 0)
+                    total_count = col_info.get('total_count', 0)
+                    
+                    # Build sample display with null indicator if needed
+                    if sample_vals:
+                        sample_display = ", ".join(sample_vals)
+                        if len(sample_display) > 50:
+                            sample_display = sample_display[:47] + "..."
+                    else:
+                        sample_display = "(no data)"
+                    
+                    # Add null count indicator if there are nulls
+                    if null_count > 0:
+                        null_percentage = (null_count / total_count * 100) if total_count > 0 else 0
+                        null_indicator = f" <span style='color: #dc2626; font-size: 0.85rem;'>({null_count} null)</span>"
+                        sample_display = sample_display + null_indicator
                     
                     # Get current user selection for this sheet and column
                     sheet_types = st.session_state['user_selected_types'].get(selected_sheet, {})
