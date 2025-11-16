@@ -1,0 +1,6 @@
+## Streamlit app configuration
+## Force light theme regardless of OS preference
+[theme]
+base = "light"
+
+
