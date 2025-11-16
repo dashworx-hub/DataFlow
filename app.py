@@ -550,6 +550,32 @@ def render_shared_css():
             opacity: 1 !important;
         }
         
+        /* Protect download buttons from being hidden */
+        .stDownloadButton > button,
+        button[data-testid*="download"] {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            position: relative !important;
+        }
+        
+        /* Ensure download buttons are always visible on hover */
+        .stDownloadButton > button:hover,
+        button:hover[data-testid*="download"] {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Additional protection for download button containers */
+        .stDownloadButton {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
         /* Improved metric containers */
         .metric-container {
             transition: all 0.2s ease;
@@ -1308,22 +1334,74 @@ def render_shared_logo_script():
         attributeFilter: ['style', 'class']
     });
     
-    // Add visual feedback for button clicks (but skip navigation buttons)
+    // Protect download buttons from being hidden
+    function protectDownloadButtons() {
+        const downloadButtons = document.querySelectorAll('.stDownloadButton > button, button[data-testid*="download"]');
+        downloadButtons.forEach(function(button) {
+            // Force download buttons to always be visible and clickable
+            button.style.setProperty('display', 'flex', 'important');
+            button.style.setProperty('visibility', 'visible', 'important');
+            button.style.setProperty('opacity', '1', 'important');
+            button.style.setProperty('pointer-events', 'auto', 'important');
+            button.style.setProperty('position', 'relative', 'important');
+            
+            // Also protect the parent container
+            const parent = button.closest('.stDownloadButton');
+            if (parent) {
+                parent.style.setProperty('display', 'block', 'important');
+                parent.style.setProperty('visibility', 'visible', 'important');
+                parent.style.setProperty('opacity', '1', 'important');
+            }
+            
+            // Prevent any hover effects that might hide it
+            button.onmouseenter = function() {
+                this.style.setProperty('display', 'flex', 'important');
+                this.style.setProperty('visibility', 'visible', 'important');
+                this.style.setProperty('opacity', '1', 'important');
+            };
+            button.onmouseleave = function() {
+                this.style.setProperty('display', 'flex', 'important');
+                this.style.setProperty('visibility', 'visible', 'important');
+                this.style.setProperty('opacity', '1', 'important');
+            };
+        });
+    }
+    
+    protectDownloadButtons();
+    setTimeout(protectDownloadButtons, 50);
+    setTimeout(protectDownloadButtons, 100);
+    setTimeout(protectDownloadButtons, 200);
+    setTimeout(protectDownloadButtons, 500);
+    
+    const downloadButtonObserver = new MutationObserver(function(mutations) {
+        protectDownloadButtons();
+    });
+    downloadButtonObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+    });
+    
+    // Add visual feedback for button clicks (but skip navigation and download buttons)
     document.addEventListener('click', function(e) {
         const button = e.target.closest('button');
         if (button) {
-            // Skip navigation buttons to avoid interfering with page switching
+            // Skip navigation buttons and download buttons to avoid interfering
             const buttonText = (button.textContent || '').trim();
             const buttonKey = button.getAttribute('data-testid') || '';
+            const isDownloadButton = button.closest('.stDownloadButton') || buttonKey.includes('download');
+            
             if (buttonText.includes('Schema Guide') || 
                 buttonText.includes('BigQuery Guide') || 
                 buttonText.includes('Back to Main') ||
                 buttonText.includes('View BigQuery Guide') ||
-                buttonKey.includes('nav_')) {
-                return; // Don't add animation to navigation buttons
+                buttonKey.includes('nav_') ||
+                isDownloadButton) {
+                return; // Don't add animation to navigation or download buttons
             }
             
-            if (e.target.closest('.stButton > button') || e.target.closest('.stDownloadButton > button')) {
+            if (e.target.closest('.stButton > button')) {
                 button.style.transform = 'scale(0.98)';
                 setTimeout(function() {
                     button.style.transform = '';
@@ -1609,11 +1687,10 @@ def display_processing_results(temp_dir):
     
     csv_files = list(output_dir.glob("*.csv"))
     schema_json_files = list(output_dir.glob("*_bq_schema.json"))
-    schema_text_files = list(output_dir.glob("*_bq_schema.txt"))
     summary_files = list(output_dir.glob("*_summary.txt"))
     
     st.markdown('<h2>Processing Summary</h2>', unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
@@ -1635,14 +1712,6 @@ def display_processing_results(temp_dir):
         st.markdown("""
         <div class="metric-container">
             <div style="font-size: 2.5rem; font-weight: 700; color: #177091;">{}</div>
-            <div style="color: #666; margin-top: 0.5rem;">Schema (Text)</div>
-        </div>
-        """.format(len(schema_text_files)), unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown("""
-        <div class="metric-container">
-            <div style="font-size: 2.5rem; font-weight: 700; color: #177091;">{}</div>
             <div style="color: #666; margin-top: 0.5rem;">Summary Files</div>
         </div>
         """.format(len(summary_files)), unsafe_allow_html=True)
@@ -1660,7 +1729,6 @@ def display_processing_results(temp_dir):
     for csv_file in csv_files:
         sheet_name = csv_file.stem
         schema_json_file = output_dir / f"{sheet_name}_bq_schema.json"
-        schema_text_file = output_dir / f"{sheet_name}_bq_schema.txt"
         summary_file = output_dir / f"{sheet_name}_summary.txt"
         
         with st.expander(f"📋 Sheet: {sheet_name}", expanded=len(csv_files) == 1):
@@ -1671,17 +1739,6 @@ def display_processing_results(temp_dir):
                 
                 st.markdown('<h3>🗂️ BigQuery Schema (JSON)</h3>', unsafe_allow_html=True)
                 st.json(schema)
-            
-            if schema_text_file.exists():
-                with open(schema_text_file, 'r', encoding='utf-8') as f:
-                    schema_text_content = f.read()
-                
-                st.markdown('<h3>📄 BigQuery Schema (Text Format)</h3>', unsafe_allow_html=True)
-                st.markdown(f"""
-                <div style="background: #ffffff; border: 1px solid #e9ecef; padding: 1rem; border-radius: 8px; font-family: monospace; white-space: pre-wrap; color: #2c3e50;">
-                {schema_text_content}
-                </div>
-                """, unsafe_allow_html=True)
             
             if summary_file.exists():
                 with open(summary_file, 'r', encoding='utf-8') as f:
@@ -1742,7 +1799,7 @@ def run_main_app():
             <li><strong>Schema Review & Editing</strong> - Review and edit inferred data types before processing with an intuitive interface</li>
             <li><strong>Automatic Column Sanitization</strong> - Converts column names to BigQuery-compatible format</li>
             <li><strong>Data Cleaning & Normalization</strong> - Handles missing values, formats dates, and cleans data</li>
-            <li><strong>BigQuery Schema Generation</strong> - Generates ready-to-use JSON and text format schema files</li>
+            <li><strong>BigQuery Schema Generation</strong> - Generates ready-to-use JSON format schema files</li>
             <li><strong>Clean CSV Output</strong> - Produces properly formatted CSV files optimized for BigQuery</li>
         </ul>
         <p style="margin-top: 1.25rem; margin-bottom: 0; padding-top: 1.25rem; border-top: 1px solid #e5e7eb;"><strong>💡 Smart Logic:</strong> Columns containing any letters (A-Z) are automatically detected as STRING type. After uploading your file, review the inferred schema, make any adjustments needed, then click "Process with this schema" to generate your BigQuery-ready files!</p>
@@ -2142,7 +2199,6 @@ def run_main_app():
                     
                     csv_zip_data = create_csv_zip(zip_output_dir)
                     schema_json_zip_data = create_schema_zip(zip_output_dir)
-                    schema_text_zip_data = create_schema_text_zip(zip_output_dir)
                     summary_zip_data = create_summary_zip(zip_output_dir)
                     all_zip_data = create_download_zip(zip_output_dir)
                 
@@ -2184,7 +2240,6 @@ def run_main_app():
                     
                     # Group files by type for this sheet
                     csv_files = [f for f in sheet_files if f.suffix.lower() == '.csv']
-                    schema_txt_files = [f for f in sheet_files if '_bq_schema.txt' in f.name]
                     schema_json_files = [f for f in sheet_files if '_bq_schema.json' in f.name]
                     summary_files = [f for f in sheet_files if '_summary.txt' in f.name]
                     
@@ -2206,27 +2261,6 @@ def run_main_app():
                                         file_name=file_path.name,
                                         mime="text/csv",
                                         key=f"csv_{sheet_name}_{file_path.name}_{idx}",
-                                        use_container_width=True
-                                    )
-                    
-                    # Display Schema Text file
-                    if schema_txt_files:
-                        num_cols = min(4, len(schema_txt_files))
-                        cols = st.columns(num_cols, gap="small")
-                        for idx, file_path in enumerate(schema_txt_files):
-                            relative_path_str = str(file_path)
-                            file_data = st.session_state.get('output_files', {}).get(relative_path_str, b'')
-                            if file_data:
-                                with cols[idx % len(cols)]:
-                                    display_name = "Schema (Text)" if len(schema_txt_files) == 1 else file_path.name
-                                    if len(display_name) > 25:
-                                        display_name = display_name[:22] + "..."
-                                    st.download_button(
-                                        label=display_name,
-                                        data=file_data,
-                                        file_name=file_path.name,
-                                        mime="text/plain",
-                                        key=f"schema_txt_{sheet_name}_{file_path.name}_{idx}",
                                         use_container_width=True
                                     )
                     
@@ -2275,7 +2309,8 @@ def run_main_app():
                 # Bulk download buttons
                 st.markdown("---")
                 st.markdown('<h3>Bulk Downloads</h3>', unsafe_allow_html=True)
-                col1, col2, col3, col4 = st.columns(4)
+                # Center the three buttons with spacer columns
+                col_spacer1, col1, col2, col3, col_spacer2 = st.columns([1, 1.5, 1.5, 1.5, 1])
                 
                 with col1:
                     st.download_button(
@@ -2284,37 +2319,30 @@ def run_main_app():
                         file_name=f"{base_name}_csv_files.zip",
                         mime="application/zip",
                         help="Download all processed CSV files",
-                        use_container_width=True
+                        use_container_width=True,
+                        key=f"bulk_csv_{base_name}"
                     )
                 
                 with col2:
-                    st.download_button(
-                        label="Download Schema (Text)",
-                        data=schema_text_zip_data,
-                        file_name=f"{base_name}_schema_text.zip",
-                        mime="application/zip",
-                        help="Download all BigQuery schema text files",
-                        use_container_width=True
-                    )
-                
-                with col3:
                     st.download_button(
                         label="Download Schema (JSON)",
                         data=schema_json_zip_data,
                         file_name=f"{base_name}_schemas_json.zip",
                         mime="application/zip",
                         help="Download all BigQuery schema JSON files",
-                        use_container_width=True
+                        use_container_width=True,
+                        key=f"bulk_schema_json_{base_name}"
                     )
                 
-                with col4:
+                with col3:
                     st.download_button(
                         label="Download All (ZIP)",
                         data=all_zip_data,
                         file_name=f"{base_name}_all_files.zip",
                         mime="application/zip",
-                        help="Download all processed files including CSV and schema files",
-                        use_container_width=True
+                        help="Download all processed files including CSV, JSON schema, and summary files",
+                        use_container_width=True,
+                        key=f"bulk_all_{base_name}"
                     )
     
     # Footer

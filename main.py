@@ -269,6 +269,21 @@ def coerce_column_to_type(s: pd.Series, target_type: str):
     # fallback
     return s.astype(str).str.strip(), "STRING", None
 
+def _map_bq_type_for_schema(t: str) -> str:
+    """
+    Normalize internal type names to BigQuery schema type names
+    used in JSON schema and text schema.
+    """
+    t_upper = t.upper()
+    if t_upper in {"INT64", "INTEGER"}:
+        return "INTEGER"
+    if t_upper in {"FLOAT64", "FLOAT"}:
+        return "FLOAT"
+    if t_upper in {"BOOL", "BOOLEAN"}:
+        return "BOOLEAN"
+    # STRING, DATE, TIMESTAMP already match what BigQuery expects
+    return t_upper
+
 def bq_schema_from_df(df: pd.DataFrame, date_fmt_map: dict) -> list:
     schema = []
     for col in df.columns:
@@ -286,7 +301,12 @@ def bq_schema_from_df(df: pd.DataFrame, date_fmt_map: dict) -> list:
                 bq = "BOOL"
             else:
                 bq = "STRING"
-        schema.append({"name": col, "type": bq, "mode": "NULLABLE"})
+        schema.append({
+            "description": "",
+            "name": col,
+            "type": _map_bq_type_for_schema(bq),
+            "mode": "NULLABLE"
+        })
     return schema
 
 def format_dates_for_csv(df: pd.DataFrame, date_fmt_map: dict) -> pd.DataFrame:
@@ -343,7 +363,7 @@ def write_bq_text_schema(bq_type_map: dict, path: Path):
     """
     with open(path, "w", encoding="utf-8") as f:
         for col, typ in bq_type_map.items():
-            f.write(f"{col}:{typ},NULLABLE\n")
+            f.write(f"{col}:{_map_bq_type_for_schema(typ)},NULLABLE\n")
 
 def process_sheet(sheet_name: str, df_raw: pd.DataFrame, out_dir: Path, override_types: dict | None = None):
     # Header cleanup
