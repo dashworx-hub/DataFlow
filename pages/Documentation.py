@@ -617,13 +617,26 @@ def main():
             <li style="margin-bottom: 1rem;">In the <strong>File format</strong> field, you don't need to make any manual changes. BigQuery automatically detects the file type based on the uploaded file.</li>
             <li style="margin-bottom: 1rem;">In the <strong>Dataset</strong> field, make sure to select the correct dataset folder name where you want the new table to be stored. Datasets in BigQuery act like folders that organise your tables, so double-check that you've chosen the appropriate one for your project.</li>
             <li style="margin-bottom: 1rem;">In the <strong>Table</strong> field, enter a descriptive and clear name for the table/dataset you're creating. This will be the name used to reference the data inside your selected dataset.</li>
-            <li style="margin-bottom: 1rem;">Under the <strong>Schema</strong> section, enable the <strong>Auto detect</strong> option. This allows BigQuery to automatically read your file and generate the appropriate column names and data types based on the contents of your CSV file.</li>
-            <li style="margin-bottom: 1rem;">After confirming all the settings are correct, select the final option shown in the image below to complete the process and create your table in BigQuery.</li>
         </ol>
     </div>
     """, unsafe_allow_html=True)
     
-    # Display screenshot ss_4_b after point 10
+    # Display screenshot ss_4_a_a after point 7
+    try:
+        st.image("assets/Documentation Assests/ss_4_a_a.png", width=750, output_format="PNG")
+    except:
+        st.image("assets/Documentation Assests/ss_4_a_a.png", width=750)
+    
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin-top: 1.5rem;">
+        <ol start="8" style="margin: 1rem 0; padding-left: 2rem;">
+            <li style="margin-bottom: 1rem;">Under the <strong>Schema</strong> section, locate and switch the toggle labeled <strong>"Edit as text"</strong>. This will open a text field where you need to paste the data schema in JSON format. To get the schema file, download it along with the cleaned CSV file from this tool. The schema file will be named in the following format: <strong>"filename_bq_schema.json"</strong> (where "filename" is the name of your uploaded file). Open this JSON file, copy its entire contents, and paste it into the text field area in BigQuery.</li>
+            <li style="margin-bottom: 1rem;">Once you have followed these steps correctly, you just need to follow the last 2 options shown in the image below:</li>
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Display screenshot ss_4_b after point 9
     try:
         st.image("assets/Documentation Assests/ss_4_b.png", width=750, output_format="PNG")
     except:
@@ -631,12 +644,118 @@ def main():
     
     st.markdown("""
     <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin-top: 1.5rem;">
-        <ol start="11" style="margin: 1rem 0; padding-left: 2rem;">
-            <li style="margin-bottom: 1rem;">Make sure you always select the <strong>Quoted newlines</strong>, while uploading the data. This is available in the available options as shown in the image</li>
-            <li style="margin-bottom: 1rem;">Once all these options are selected correctly, you can then <strong>Create table</strong>.</li>
+        <ol start="10" style="margin: 1rem 0; padding-left: 2rem;">
+            <li style="margin-bottom: 1rem;">Under the <strong>Advanced options</strong> section, you will find an option labeled <strong>"Headers to Skip"</strong>. By default, this is set to 0. Change this value to <strong>1</strong>. This tells BigQuery to skip the column headers (the first row) while parsing the data, ensuring that your headers are not imported as data rows.</li>
+            <li style="margin-bottom: 1rem;">Make sure you always select the <strong>Quoted newlines</strong> option while uploading the data. This is available in the available options as shown in the image above.</li>
+            <li style="margin-bottom: 1rem;">Once all these options are selected correctly, you can then click <strong>Create table</strong>.</li>
         </ol>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Step 5
+    st.markdown("""
+    <div style="margin: 3rem 0 2rem 0;">
+        <h3 style="color: #111827; font-size: 1.75rem; font-weight: 600; margin: 0 0 1.5rem 0; display: flex; align-items: center;">
+            <span style="background: #177091; color: #ffffff; width: 40px; height: 40px; border-radius: 50%; text-align: center; line-height: 40px; font-weight: 600; font-size: 1.1rem; margin-right: 1rem; display: inline-block;">5</span>
+            Appending Data in BigQuery
+        </h3>
+        <div style="color: #374151; line-height: 1.9; font-size: 1.05rem;">
+            <p style="margin-bottom: 1.5rem;">If you are appending data for the first time, you need to run the following SQL query in BigQuery to combine your split tables into a single main table.</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<p style="margin-bottom: 0.75rem; font-weight: 600; color: #111827; font-size: 1.05rem;">Query to run in BigQuery:</p>', unsafe_allow_html=True)
+    
+    # Display SQL query in a code block
+    sql_query = """CREATE OR REPLACE TABLE `folder.main` AS
+
+SELECT * FROM `folder.split_1`
+
+UNION ALL
+
+SELECT * FROM `folder.split_2`;"""
+    
+    st.code(sql_query, language='sql')
+    
+    # Explanation sections - matching rest of documentation style
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin-top: 1.5rem;">
+        <h4 style="color: #111827; font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 1rem 0;">Explanation of Placeholders</h4>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem;">
+        <ul style="margin: 1rem 0; padding-left: 2rem;">
+            <li style="margin-bottom: 1rem;"><strong>folder</strong> - The name of your BigQuery dataset. This is where all your tables are stored.</li>
+            <li style="margin-bottom: 1rem;"><strong>main</strong> - The name of the table you are creating. This becomes your combined full dataset that contains all the appended data.</li>
+            <li style="margin-bottom: 1rem;"><strong>split_1</strong> - The name of the first table you want to include in the combined dataset.</li>
+            <li style="margin-bottom: 1rem;"><strong>split_2</strong> - The name of the second table you want to append directly after split_1.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin-top: 1.5rem;">
+        <h4 style="color: #111827; font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 1rem 0;">What the Query Does</h4>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem;">
+        <ol style="margin: 1rem 0; padding-left: 2rem;">
+            <li style="margin-bottom: 1rem;"><strong>CREATE OR REPLACE TABLE `folder.main`</strong> - Creates a new table called "main" in your dataset. If a table with that name already exists, it completely replaces it with the new data.</li>
+            <li style="margin-bottom: 1rem;"><strong>SELECT * FROM `folder.split_1`</strong> - Takes all columns and rows from the first table (split_1).</li>
+            <li style="margin-bottom: 1rem;"><strong>UNION ALL SELECT * FROM `folder.split_2`</strong> - Adds all rows from the second table (split_2) directly underneath the rows from split_1, without removing any duplicates.</li>
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Why UNION ALL is Used - with translucent blue background
+    st.markdown("""
+    <div style="background: rgba(23, 112, 145, 0.1); border-left: 4px solid #177091; border-radius: 4px; padding: 1rem; margin: 1.5rem 0;">
+        <p style="margin: 0; color: #374151; line-height: 1.9; font-size: 1.05rem;"><strong>Why UNION ALL is Used:</strong> We use UNION ALL because we want to append the data exactly as it is, without removing duplicates or merging rows. This keeps all rows from both split_1 and split_2 in the final combined table.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Step-by-step instructions
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin: 1.5rem 0;">
+        <ol style="margin: 1rem 0; padding-left: 2rem;">
+            <li style="margin-bottom: 1rem;">Select either your dataset folder or any table inside it. A pane will open where you can see the plus sign (+) on the top as shown in the image below:</li>
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Display screenshot ss_5_a
+    try:
+        st.image("assets/Documentation Assests/ss_5_a.png", width=750, output_format="PNG")
+    except:
+        st.image("assets/Documentation Assests/ss_5_a.png", width=750)
+    
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin-top: 1.5rem;">
+        <ol start="2" style="margin: 1rem 0; padding-left: 2rem;">
+            <li style="margin-bottom: 1rem;">Once you select the plus (+) option, the SQL editor will open. See the image below:</li>
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Display screenshot ss_5_b
+    try:
+        st.image("assets/Documentation Assests/ss_5_b.png", width=750, output_format="PNG")
+    except:
+        st.image("assets/Documentation Assests/ss_5_b.png", width=750)
+    
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin-top: 1.5rem;">
+        <ol start="3" style="margin: 1rem 0; padding-left: 2rem;">
+            <li style="margin-bottom: 1rem;">Once you paste the query inside the editor, you should be able to run the query by clicking on the <strong>Run</strong> button.</li>
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
     
     # Download all images button at the end
     st.markdown("---")
@@ -651,7 +770,10 @@ def main():
             "assets/Documentation Assests/ss_2.png",
             "assets/Documentation Assests/ss_3.png",
             "assets/Documentation Assests/ss_4_a.png",
-            "assets/Documentation Assests/ss_4_b.png"
+            "assets/Documentation Assests/ss_4_a_a.png",
+            "assets/Documentation Assests/ss_4_b.png",
+            "assets/Documentation Assests/ss_5_a.png",
+            "assets/Documentation Assests/ss_5_b.png"
         ]
         
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
