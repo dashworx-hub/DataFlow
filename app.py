@@ -432,12 +432,23 @@ def render_shared_css():
         .schema-review-row {
             transition: all 0.2s ease;
             border-radius: 8px;
-            padding: 0.5rem 0;
+            padding: 0.25rem 0;
+            margin-bottom: 0.25rem;
         }
         
         .schema-review-row:hover {
             background-color: #f9fafb;
             transform: translateX(4px);
+        }
+        
+        /* Reduce spacing between schema review rows */
+        .schema-review-row + .schema-review-row {
+            margin-top: 0;
+        }
+        
+        /* Reduce column padding within schema review rows */
+        .schema-review-row div[data-testid="column"] {
+            padding: 0.25rem 0.5rem !important;
         }
         
         /* Better selectbox styling */
@@ -480,9 +491,15 @@ def render_shared_css():
             box-shadow: 0 2px 8px rgba(39, 65, 86, 0.1) !important;
         }
         
-        /* Improved spacing for columns in schema review */
+        /* Default column padding */
         div[data-testid="column"] {
             padding: 0.5rem !important;
+        }
+        
+        /* Reduced spacing for columns in schema review */
+        .schema-review-container div[data-testid="column"],
+        .schema-review-row div[data-testid="column"] {
+            padding: 0.25rem 0.5rem !important;
         }
         
         /* Better visual hierarchy for schema review */
@@ -893,7 +910,8 @@ def render_shared_css():
             outline: none !important;
         }
         
-        /* Style the clear/remove button (X button) in file uploader - More aggressive targeting */
+        /* Style the clear/remove button - Hide SVG and show "Clear" text */
+        [data-testid="stFileUploader"] button[data-clear-text-added],
         [data-testid="stFileUploader"] button[aria-label*="Remove"],
         [data-testid="stFileUploader"] button[aria-label*="remove"],
         [data-testid="stFileUploader"] button[title*="Remove"],
@@ -915,19 +933,55 @@ def render_shared_css():
             background-color: #274156 !important;
             border: 1px solid #274156 !important;
             border-radius: 8px !important;
-            width: 40px !important;
-            min-width: 40px !important;
-            max-width: 40px !important;
             height: 40px !important;
             min-height: 40px !important;
             max-height: 40px !important;
-            padding: 0 !important;
+            padding: 0 12px !important;
             margin: 0 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             color: #ffffff !important;
+            font-weight: 500 !important;
+            font-size: 0.9375rem !important;
             flex-shrink: 0 !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        /* When button has "Clear" text, make it wider */
+        [data-testid="stFileUploader"] button[data-clear-text-added] {
+            min-width: 60px !important;
+            width: auto !important;
+            max-width: none !important;
+        }
+        
+        /* When button still has SVG (not converted yet), keep it square */
+        [data-testid="stFileUploader"] button:has(svg):not([data-clear-text-added]) {
+            width: 40px !important;
+            min-width: 40px !important;
+            max-width: 40px !important;
+            padding: 0 !important;
+        }
+        
+        /* Hide SVG in clear buttons */
+        [data-testid="stFileUploader"] button[data-clear-text-added] svg,
+        [data-testid="stFileUploader"] button[data-clear-text-added] > svg {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        
+        /* Additional targeting for clear button - any button with SVG that's small */
+        [data-testid="stFileUploader"] > div > div > div button:has(svg),
+        [data-testid="stFileUploader"] > div > div button:has(svg),
+        [data-testid="stFileUploader"] ul button:has(svg),
+        [data-testid="stFileUploader"] li button:has(svg) {
+            min-width: 60px !important;
+            width: auto !important;
+            padding: 0 12px !important;
         }
         
         /* Target all SVG elements inside remove buttons */
@@ -978,6 +1032,7 @@ def render_shared_css():
         }
         
         /* Hover states */
+        [data-testid="stFileUploader"] button[data-clear-text-added]:hover,
         [data-testid="stFileUploader"] button[aria-label*="Remove"]:hover,
         [data-testid="stFileUploader"] button[aria-label*="remove"]:hover,
         [data-testid="stFileUploader"] button[title*="Remove"]:hover,
@@ -992,6 +1047,7 @@ def render_shared_css():
             background: #335169 !important;
             background-color: #335169 !important;
             border-color: #335169 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -1118,90 +1174,199 @@ def render_shared_logo_script():
     });
     
     function styleFileUploaderClearButton() {
-        // Find the file uploader
-        const fileUploader = document.querySelector('[data-testid="stFileUploader"]');
-        if (!fileUploader) return;
+        // Find the file uploader - try multiple selectors
+        const fileUploader = document.querySelector('[data-testid="stFileUploader"]') || 
+                            document.querySelector('.stFileUploader') ||
+                            document.querySelector('[class*="fileUploader"]');
         
-        // Find the uploaded file list container - it's usually in a specific structure
-        // Look for buttons that are positioned next to file names (the clear buttons)
-        // These buttons are typically in a row with the file name
-        const allButtons = fileUploader.querySelectorAll('button');
+        // Find all buttons - start with file uploader, but also search document-wide for small square buttons
+        let allButtons = [];
+        
+        if (fileUploader) {
+            allButtons = Array.from(fileUploader.querySelectorAll('button'));
+            const parentContainer = fileUploader.closest('div');
+            if (parentContainer) {
+                const nearbyButtons = Array.from(parentContainer.querySelectorAll('button'));
+                nearbyButtons.forEach(function(btn) {
+                    if (!allButtons.includes(btn)) {
+                        allButtons.push(btn);
+                    }
+                });
+            }
+        }
+        
+        // Also search document-wide for any small square button that might be the clear button
+        // Look for buttons that are 40x40 or smaller with SVG, positioned near file names
+        const allDocumentButtons = Array.from(document.querySelectorAll('button'));
+        allDocumentButtons.forEach(function(btn) {
+            const svg = btn.querySelector('svg');
+            const btnText = (btn.textContent || '').trim();
+            
+            // Skip if already in our list or if it's the Browse button
+            if (allButtons.includes(btn) || btnText.toLowerCase().includes('browse')) {
+                return;
+            }
+            
+            // If it's a small square button with SVG and no text, it might be the clear button
+            if (svg && !btnText) {
+                try {
+                    const computedStyle = window.getComputedStyle(btn);
+                    const btnWidth = parseFloat(computedStyle.width);
+                    const btnHeight = parseFloat(computedStyle.height);
+                    
+                    // Check if it's a small square button (40x40 or smaller)
+                    if (btnWidth <= 45 && btnHeight <= 45) {
+                        // Check if it's near a file uploader or file list
+                        const parent = btn.closest('[data-testid="stFileUploader"]') || 
+                                      btn.closest('ul') || 
+                                      btn.closest('li') ||
+                                      btn.closest('[class*="file"]');
+                        if (parent) {
+                            allButtons.push(btn);
+                        }
+                    }
+                } catch(e) {
+                    // If we can't compute style, still check if it has remove/delete/clear attributes
+                    const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
+                    const title = (btn.getAttribute('title') || '').toLowerCase();
+                    if (ariaLabel.includes('remove') || ariaLabel.includes('delete') || ariaLabel.includes('clear') ||
+                        title.includes('remove') || title.includes('delete') || title.includes('clear')) {
+                        allButtons.push(btn);
+                    }
+                }
+            }
+        });
         
         allButtons.forEach(function(btn) {
             const btnText = (btn.textContent || '').trim();
             const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
             const title = (btn.getAttribute('title') || '').toLowerCase();
+            const svg = btn.querySelector('svg');
+            const computedStyle = window.getComputedStyle(btn);
+            const btnWidth = parseFloat(computedStyle.width);
+            const btnHeight = parseFloat(computedStyle.height);
             
             // Skip the "Browse files" button - it has visible text like "Browse files"
             if (btnText && (btnText.toLowerCase().includes('browse') || btnText.toLowerCase().includes('file'))) {
                 return;
             }
             
-            // The clear button is typically:
-            // 1. A small button with SVG (no text)
-            // 2. Positioned to the right of file names
-            // 3. Has aria-label or title with "remove", "delete", "clear"
-            // 4. Or is a small square button with just an SVG icon
-            
-            const svg = btn.querySelector('svg');
-            const hasText = btnText && btnText.length > 0;
-            
-            // Target buttons that have SVG but no visible text (the clear button)
-            // OR buttons with remove/delete/clear in aria-label/title
-            if (svg && !hasText) {
-                // This is likely the clear button
-            } else if (ariaLabel.includes('remove') || ariaLabel.includes('delete') || ariaLabel.includes('clear') ||
-                       title.includes('remove') || title.includes('delete') || title.includes('clear')) {
-                // This is definitely the clear button
-            } else {
-                return; // Skip other buttons
-            }
-            
-            // Check if we've already replaced this button
-            if (btn.hasAttribute('data-clear-text-added')) {
+            // Skip if already converted to "Clear" button
+            if (btn.hasAttribute('data-clear-text-added') && btnText === 'Clear') {
+                // Ensure styling is still correct
+                btn.style.setProperty('background', '#274156', 'important');
+                btn.style.setProperty('background-color', '#274156', 'important');
+                btn.style.setProperty('color', '#ffffff', 'important');
+                btn.style.setProperty('min-width', '60px', 'important');
+                btn.style.setProperty('width', 'auto', 'important');
+                btn.style.setProperty('height', '40px', 'important');
+                btn.style.setProperty('padding', '0 12px', 'important');
                 return;
             }
             
-            // This is the clear button - replace SVG with "Clear" text
-            if (svg) {
-                svg.remove();
+            // More aggressive detection: 
+            // 1. Has SVG but no text
+            // 2. Has remove/delete/clear in aria-label/title
+            // 3. Small square button (typically 40x40 or smaller) with SVG
+            // 4. Button positioned next to file name
+            const isSmallSquare = btnWidth <= 45 && btnHeight <= 45 && svg;
+            const hasRemoveLabel = ariaLabel.includes('remove') || 
+                                  ariaLabel.includes('delete') || 
+                                  ariaLabel.includes('clear') ||
+                                  title.includes('remove') || 
+                                  title.includes('delete') || 
+                                  title.includes('clear');
+            const isClearButton = (svg && !btnText) || hasRemoveLabel || isSmallSquare;
+            
+            if (!isClearButton) {
+                return; // Skip other buttons
             }
             
-            // Add "Clear" text
+            // Remove all SVG elements and their parent containers
+            const allSvgs = btn.querySelectorAll('svg');
+            allSvgs.forEach(function(svgEl) {
+                svgEl.remove();
+            });
+            
+            // Remove any child elements that might be icon containers
+            const children = Array.from(btn.children);
+            children.forEach(function(child) {
+                if (child.tagName === 'SVG' || child.querySelector('svg')) {
+                    child.remove();
+                }
+            });
+            
+            // Clear all content and set "Clear" text
+            btn.innerHTML = '';
             btn.textContent = 'Clear';
             btn.setAttribute('data-clear-text-added', 'true');
             
-            // Style the button - make it wider to fit text
-            btn.style.cssText += 'background: #274156 !important; background-color: #274156 !important; border: 1px solid #274156 !important; border-radius: 8px !important; min-width: 60px !important; width: auto !important; height: 40px !important; min-height: 40px !important; padding: 0 12px !important; margin: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; color: #ffffff !important; font-weight: 500 !important; font-size: 0.9375rem !important; flex-shrink: 0 !important;';
+            // Apply comprehensive styling - use cssText for maximum override
+            btn.style.cssText = 'background: #274156 !important; ' +
+                               'background-color: #274156 !important; ' +
+                               'border: 1px solid #274156 !important; ' +
+                               'border-color: #274156 !important; ' +
+                               'border-radius: 8px !important; ' +
+                               'min-width: 60px !important; ' +
+                               'width: auto !important; ' +
+                               'max-width: none !important; ' +
+                               'height: 40px !important; ' +
+                               'min-height: 40px !important; ' +
+                               'max-height: 40px !important; ' +
+                               'padding: 0 12px !important; ' +
+                               'margin: 0 !important; ' +
+                               'display: flex !important; ' +
+                               'align-items: center !important; ' +
+                               'justify-content: center !important; ' +
+                               'color: #ffffff !important; ' +
+                               'font-weight: 500 !important; ' +
+                               'font-size: 0.9375rem !important; ' +
+                               'flex-shrink: 0 !important; ' +
+                               'box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important; ' +
+                               'transition: all 0.2s ease !important; ' +
+                               'cursor: pointer !important;';
             
-            // Add hover effect
+            // Add hover effect (only if not already added)
             if (!btn.hasAttribute('data-hover-added')) {
                 btn.setAttribute('data-hover-added', 'true');
-                btn.addEventListener('mouseenter', function() {
+                const hoverEnter = function() {
                     this.style.setProperty('background', '#335169', 'important');
                     this.style.setProperty('background-color', '#335169', 'important');
                     this.style.setProperty('border-color', '#335169', 'important');
-                });
-                btn.addEventListener('mouseleave', function() {
+                    this.style.setProperty('box-shadow', '0 2px 4px rgba(0,0,0,0.1)', 'important');
+                };
+                const hoverLeave = function() {
                     this.style.setProperty('background', '#274156', 'important');
                     this.style.setProperty('background-color', '#274156', 'important');
                     this.style.setProperty('border-color', '#274156', 'important');
-                });
+                    this.style.setProperty('box-shadow', '0 1px 2px rgba(0,0,0,0.05)', 'important');
+                };
+                btn.addEventListener('mouseenter', hoverEnter);
+                btn.addEventListener('mouseleave', hoverLeave);
             }
         });
     }
     
+    // Run immediately and more frequently
     styleFileUploaderClearButton();
+    setTimeout(styleFileUploaderClearButton, 50);
     setTimeout(styleFileUploaderClearButton, 100);
+    setTimeout(styleFileUploaderClearButton, 200);
     setTimeout(styleFileUploaderClearButton, 500);
     setTimeout(styleFileUploaderClearButton, 1000);
+    setTimeout(styleFileUploaderClearButton, 2000);
+    
+    // Use setInterval for continuous monitoring
+    setInterval(styleFileUploaderClearButton, 500);
     
     const fileUploaderObserver = new MutationObserver(function(mutations) {
         styleFileUploaderClearButton();
     });
     fileUploaderObserver.observe(document.body, {
         childList: true,
-        subtree: true
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class', 'data-testid']
     });
     
     // Smooth scroll to sections
@@ -1731,7 +1896,7 @@ def display_processing_results(temp_dir):
         schema_json_file = output_dir / f"{sheet_name}_bq_schema.json"
         summary_file = output_dir / f"{sheet_name}_summary.txt"
         
-        with st.expander(f"📋 Sheet: {sheet_name}", expanded=len(csv_files) == 1):
+        with st.expander(f"Sheet: {sheet_name}", expanded=len(csv_files) == 1):
             
             if schema_json_file.exists():
                 with open(schema_json_file, 'r', encoding='utf-8') as f:
@@ -1944,7 +2109,7 @@ def run_main_app():
         # Display Schema Review Table
         if st.session_state.get('inferred_schemas') and not st.session_state.get('processed', False):
             st.markdown("---")
-            st.markdown('<h2>📋 Schema Review</h2>', unsafe_allow_html=True)
+            st.markdown('<h2>Schema Review</h2>', unsafe_allow_html=True)
             
             sheet_names = st.session_state.get('sheet_names', [])
             inferred_schemas = st.session_state.get('inferred_schemas', {})
@@ -2236,7 +2401,7 @@ def run_main_app():
                     # Show sheet name header if multiple sheets
                     sheet_names = st.session_state.get('sheet_names', [])
                     if len(sheet_names) > 1:
-                        st.markdown(f'<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">📋 Sheet: {sheet_name}</h4>', unsafe_allow_html=True)
+                        st.markdown(f'<h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: #177091; font-size: 1.1rem;">Sheet: {sheet_name}</h4>', unsafe_allow_html=True)
                     
                     # Group files by type for this sheet
                     csv_files = [f for f in sheet_files if f.suffix.lower() == '.csv']
