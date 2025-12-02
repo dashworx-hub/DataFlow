@@ -496,7 +496,7 @@ def main():
         if st.button("← Back to Main Page", use_container_width=True, key="back_to_main"):
             st.switch_page("app.py")
     with col3:
-        if st.button("📚 Schema Guide →", use_container_width=True, key="nav_to_schema_docs"):
+        if st.button("Schema Guide →", use_container_width=True, key="nav_to_schema_docs"):
             st.switch_page("pages/Schema_Documentation.py")
     
     # Documentation content
@@ -756,6 +756,29 @@ SELECT * FROM `folder.split_2`;"""
     </div>
     """, unsafe_allow_html=True)
     
+    # Appending Additional Data Section
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin: 2.5rem 0 1.5rem 0;">
+        <h4 style="color: #111827; font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem 0;">Appending Additional Data</h4>
+        <p style="margin-bottom: 1.5rem;">After you have successfully run the initial query above and created your main table, you may need to append new or updated data to your existing table. For example, if you have a new data file that contains updated or additional records that you want to add to your existing main table, you can use the following query.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<p style="margin-bottom: 0.75rem; font-weight: 600; color: #111827; font-size: 1.05rem;">Query to append additional data:</p>', unsafe_allow_html=True)
+    
+    # Display INSERT query in a code block
+    insert_query = """INSERT INTO `folder.main`
+
+SELECT * FROM `folder.new_data`;"""
+    
+    st.code(insert_query, language='sql')
+    
+    st.markdown("""
+    <div style="color: #374151; line-height: 1.9; font-size: 1.05rem; margin-top: 1.5rem;">
+        <p style="margin-bottom: 1rem;"><strong>Important:</strong> This query should only be run <strong>after</strong> you have successfully executed the initial <code>CREATE OR REPLACE TABLE</code> query. The initial query creates the main table structure, and this <code>INSERT INTO</code> query adds additional rows to the existing table without replacing it.</p>
+        <p style="margin-bottom: 1rem;">You can use this query whenever you have new or updated data to append to your main table. Simply replace <code>new_data</code> with the name of your new data table. Each time you run this query, the new data will be appended to the bottom of your main table, preserving all existing data.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Download all images button at the end
     st.markdown("---")
